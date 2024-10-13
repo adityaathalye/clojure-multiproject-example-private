@@ -1,0 +1,70 @@
+{:deps {org.clojure/clojure {:mvn/version "1.12.0"}}
+ :mvn/local-repo ".m2-local"
+ :aliases {;; GLOBAL OVERRIDES
+           :cider {;; clj -M:dev:cider
+                   :extra-deps {cider/cider-nrepl {:mvn/version "0.50.2"}
+                                refactor-nrepl/refactor-nrepl {:mvn/version "3.9.1"}}
+                   :main-opts ["-m" "nrepl.cmdline"
+                               "--middleware"
+                               "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"
+                               "--interactive"]}
+
+           ;; ALL SETTINGS CONSOLIDATED AT THE ROOT OF THE MULTIPROJECT
+           :root/run-x {:exec-fn -main}
+           :root/extra-paths ["src" "resources" "test"
+                              :grugstack/extra-paths
+                              :com.example.core/extra-paths
+                              :com.acmecorp.snafuapp.core/extra-paths]
+           :root/all {:extra-paths [:root/extra-paths]
+                      :extra-deps {grugstack/grugstack
+                                   {:local/root "grugstack"}}}
+           :root/dev {:extra-paths ["dev"]
+                      :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
+                                   integrant/repl {:mvn/version "0.3.3"}
+                                   dev.weavejester/cljfmt {:mvn/version "0.13.0"}
+                                   djblue/portal {:mvn/version "0.58.2"}}}
+           :root/test {:extra-paths [:root/extra-paths]
+                       :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                                    io.github.cognitect-labs/test-runner
+                                    {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+                       :exec-fn cognitect.test-runner.api/test
+                       :exec-args {:patterns [".*-test$"]
+                                   :dirs ["test" "grugstack" "projects"]}}
+           :root/build {:extra-paths ["build"]
+                        :extra-deps {io.github.clojure/tools.build
+                                     {:mvn/version "0.10.5"}}
+                        :ns-default build
+                        :exec-fn ci
+                        :exec-args {:app-alias :com.example.core}}
+
+           ;; GRUGSTACK
+           :grugstack/extra-paths ["grugstack/dev"
+                                   "grugstack/test"
+                                   "grugstack/src"
+                                   "grugstack/resources"]
+           :grugstack {:extra-deps {grugstack/grugstack
+                                    {:local/root "grugstack"}}
+                       :exec-args {:dirs ["grugstack"]}}
+
+           ;; EXAMPLE APP
+           :com.example.core/extra-paths ["projects/example_app/dev"
+                                          "projects/example_app/test"
+                                          "projects/example_app/src"
+                                          "projects/example_app/resources"]
+           :com.example.core {:ns-default com.example.core
+                              :main-opts ["-m" "com.example.core"]
+                              :extra-deps {;; does not use grugstack/grugstack {:local/root "grugstack"}
+                                           projects/example_app {:local/root "projects/example_app"}}
+                              :exec-args {:dirs ["projects/example_app"]}}
+
+           ;; ACME CORP's SNAFUAPP
+           :com.acmecorp.snafuapp.core/extra-paths ["projects/acmecorp/snafuapp/dev"
+                                                    "projects/acmecorp/snafuapp/test"
+                                                    "projects/acmecorp/snafuapp/src"
+                                                    "projects/acmecorp/snafuapp/resources"]
+           :com.acmecorp.snafuapp.core {:ns-default com.acmecorp.snafuapp.core
+                                        :main-opts ["-m" "com.acmecorp.snafuapp.core"]
+                                        :extra-deps {;; explicitly uses grugstack
+                                                     grugstack/grugstack {:local/root "grugstack"}
+                                                     acmecorp/snafuapp {:local/root "projects/acmecorp/snafuapp"}}
+                                        :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}}}

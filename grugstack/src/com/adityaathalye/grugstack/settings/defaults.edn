@@ -1,0 +1,6 @@
+{:com.adityaathalye.grugstack.system.core/settings {:app-name "OVERRIDE_ME_PLACEHOLDER"
+                                                    :runtime-environment-type "dev"
+                                                    :system-modules [:com.adityaathalye.grugstack.system.sqlite
+                                                                     :com.adityaathalye.grugstack.system.runtime
+                                                                     :com.adityaathalye.grugstack.system.application
+                                                                     :com.adityaathalye.grugstack.system.server]}}
