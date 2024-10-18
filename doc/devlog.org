@@ -1,6 +1,7 @@
 #+Title: Dev Log
 
 * Dev Setup
+- Get app skeleton done, with reloaded workflow, standard middleware, and echo route
 - Pedestal web app, but, with WASM SQLite in mind
 - SQLite PRAGMAS for web (WAL)
 - raw schema import for existing CSV data

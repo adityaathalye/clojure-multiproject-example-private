@@ -1,12 +1,12 @@
 (ns com.bombaylitmag.mothra
+  (:require [com.bombaylitmag.system.core :as system]
+
+            [clojure.tools.logging :as log])
   (:gen-class))
 
-(defn greet
-  "Callable entry point to the application."
-  [data]
-  (println (str "Hello, " (or (:name data) "World") "!")))
-
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
-  (greet {:name (first args)}))
+  (let [env (or (first args) :dev)
+        env (keyword env)]
+    (log/info "Invoking -main with environment" env)
+    (system/init env)))
