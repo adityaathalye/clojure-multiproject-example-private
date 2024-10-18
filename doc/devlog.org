@@ -1,0 +1,47 @@
+#+Title: Dev Log
+
+* Dev Setup
+- Pedestal web app, but, with WASM SQLite in mind
+- SQLite PRAGMAS for web (WAL)
+- raw schema import for existing CSV data
+  - But treat it as an export / reporting format
+- normalised table design
+- write next-jdbc sql
+- identify forms / workflows to code into UI
+- define routes
+- malli for schemas
+* Model
+Think in terms of a vertically integrated Typeform feeding into Gerrit
+workflows, trello boards / queues, media+content store of record, and
+data exporter... (BUT NOT A CMS OR A PUBLISHING ENGINE --- that's a
+manual upload job, for WP etc).
+** Data
+Notes about the raw data ("mothra" data dump):
+- The spreadsheets double up for human consumption. We need to put
+  them in normal form (which normal form? third normal?).
+- Should we add bitemporality? Amending entries.
+- Submissions are reviewed in at least one stage, by at least one
+  person per stage
+- Consider distinguishing review status v/s published status
+  - Is "withdrawn" a published status or reviewed status? Currently,
+    "Rejected" appears to be the catchall term.
+  - Does this make sense?
+    - Review round: Slush, Long List, Short List, Final Selection
+    - Reading situation for each round: Unread, Read, Next Round,
+      Reject, Personalise Reject, Alert Admin
+      - Optional note for each situation
+    - Final acceptance constraints: One Aye, Two Ayes, or some other
+      heuristic (e.g. at least one Editor must Aye)?
+    - Submission state: Submitted, Partially Withdrawn
+      (pre-publication), Withdrawn (pre-publication), Retracted
+      (post-publication)
+    - Published states: Unpublished, Published, Waitlisted
+    - Score: Set per "Reading" state transition. NULL when Unread and
+      Reading, non-null when Read.
+    - Assigned to: Depends on a combination of states
+** Views
+- A global list / table of all submissions (with filters)
+  - Person-specific view of what's in their review queue
+-
+* Extras
+  - Autobots?: Plagiarism checker, LLM summariser?
