@@ -1,12 +1,15 @@
 (ns com.bombaylitmag.db.migrations
-  (:require [com.bombaylitmag.db.utils :as db-utils]))
+  (:require [com.bombaylitmag.db.utils :as db-utils]
+            [next.jdbc :as jdbc]
+            [clojure.tools.logging :as log]))
 
 (def sql-queries
   (db-utils/sql-queries-map-init!
    "com/bombaylitmag/db"
-   {::pragmas "pragmas.sql"
-    ::ddl "model.sql"}))
+   {::ddl "model.sql"}))
 
 (defn migrate!
-  []
-  (::ddl sql-queries))
+  [ds]
+  (with-open [ds (jdbc/get-connection ds)]
+    (log/info "MIGRATING DDL" (select-keys sql-queries [::ddl]))
+    ds))

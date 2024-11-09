@@ -16,13 +16,11 @@ PRAGMA synchronous=NORMAL;
 PRAGMA busy_timeout=5000;
 -- Use up to N threads on multi-core systems.
 PRAGMA threads=4;
---
 -- MEMORY RESOURCES
---
 -- Store temporary tables in memory for more performance.
 PRAGMA temp_store=MEMORY;
 -- Page Size in bytes (4KB is default, make it explicit anyway)
-PRAGMA page_size=4096
+PRAGMA page_size=4096;
 -- Pages of cache. Negative number is absolute value in KiB.
 -- Positive number is number of pages. Bump high, to say 1GB,
 -- to reduce disk access for large datasets.

@@ -39,6 +39,6 @@
   (reduce-kv (fn [queries-map query-key query-file]
                (assoc queries-map
                       query-key
-                      (sql-slurp! sql-dir query-file)))
+                      [(sql-slurp! sql-dir query-file)]))
              {}
              sql-query-map))
