@@ -14,16 +14,16 @@
   {:runtime/env env
    :database/primary {:dbtype "sqlite"
                       :dbname (format "db/mothra_%s.sqlite3" (name env))
+                      ;; GLOBAL PRAGMAS and settings
+                      :journal_mode "WAL" ; supported by xerial JDBC driver
                       :connectionTestQuery "VACUUM;"
-                      ;; PRAGMAS
-                      ;; - Map pragmas to the xerial driver's ENUM
-                      ;;   https://github.com/xerial/sqlite-jdbc/blob/master/src/main/java/org/sqlite/SQLiteConfig.java#L382
+                      ;; PER-CONNECTION PRAGMAS for use via HikariCP
                       ;; - Pass PRAGMA key/value pairs under :dataSourceProperties,
-                      ;;   because we are using HikariCP for connection pooling.
-                      ;;   Ref. next.jdbc's Connection Pooling advice
-                      :dataSourceProperties {;; GLOBAL PRAGMAS
-                                             :journal_mode "WAL"
-                                             ;; PER CONNECTION PRAGMAS (must be set fresh for each connection)
+                      ;;   as per next.jdbc's advice for Connection Pooling with HikariCP.
+                      ;; - Map the underlying xerial driver's ENUM definition to the actual
+                      ;;   SQLite PRAGMAs, because naming is hard and names change.
+                      ;;   https://github.com/xerial/sqlite-jdbc/blob/master/src/main/java/org/sqlite/SQLiteConfig.java#L382
+                      :dataSourceProperties {;; PER CONNECTION PRAGMAS (must be set fresh for each connection)
                                              :temp_store 2 ; 2 = MEMORY, set per connection
                                              :busy_timeout 5000 ; ms, set per connection
                                              :limit_worker_threads 4 ; set per connection
@@ -52,17 +52,36 @@
   ;; TODO: Test the read/write characteristics in WAL mode.
 
   (log/info "DB SETUP. PRIMARY STORE:" db-spec)
-  (let [^HikariDataSource ds (jdbc-conn/->pool HikariDataSource
-                                               db-spec)]
-    ;; xerial's pragma ENUM does not define auto_vacuum,
-    ;; so we have to do this manually. Sigh.
-    (jdbc/execute! ds ["PRAGMA auto_vacuum = 2"]) ; 2 = INCREMENTAL
-    (jdbc/execute! ds ["VACUUM"]) ; auto_vacuum value gets set only after vacuum
-    ;; next.jdbc doc says to open/close a connection to
-    ;; initialize the pool and perform the validation check:
-    (.close (jdbc/get-connection ds))
+  ;; xerial's pragma ENUM does not define auto_vacuum,
+  ;; so we have to do this manually. Sigh.
+  (with-open [conn (jdbc/get-connection db-spec)]
+    (jdbc/execute! conn ["PRAGMA auto_vacuum = 2"]) ; 2 = INCREMENTAL
+    ;; auto_vacuum value gets set only after vacuum
+    (jdbc/execute! conn ["VACUUM"]))
 
-    (with-open [c (jdbc/get-connection ds)]
+  ;; Always run optimize at startup, after all
+  ;; configurations are set and DDLs are executed.
+  ;; https://www.sqlite.org/pragma.html#pragma_optimize
+  (jdbc/execute! db-spec ["PRAGMA optimize"])
+
+  ;; Construct a write path and a read path
+  (let [reader-db-spec (assoc db-spec
+                              :read-only true ; ensure writes fail
+                              :maximum-pool-size 4)
+        writer-db-spec (assoc db-spec
+                              :read-only false
+                              :maximum-pool-size 1)
+        reader-pool ^HikariDataSource (jdbc-conn/->pool HikariDataSource
+                                                        reader-db-spec)
+        writer-pool ^HikariDataSource (jdbc-conn/->pool HikariDataSource
+                                                        writer-db-spec)]
+    ;; next.jdbc doc says to open/close a connection to
+    ;; initialize the reader-pool and perform the validation check:
+    (.close (jdbc/get-connection reader-pool))
+    (.close (jdbc/get-connection writer-pool))
+
+    (with-open [cr (jdbc/get-connection reader-pool)
+                cw (jdbc/get-connection writer-pool)]
       (doseq [pragma ["journal_mode"
                       "auto_vacuum"
                       "threads"
@@ -71,20 +90,20 @@
                       "foreign_keys"
                       "cache_size"
                       "synchronous"]]
-        (log/info "DB SETUP. PRIMARY STORE PRAGMA IS:"
-                  (jdbc/execute-one! c [(str "PRAGMA " pragma)]))))
+        (log/info "DB SETUP. PRIMARY STORE."
+                  "READER POOL PRAGMA:"
+                  (jdbc/execute-one! cr [(str "PRAGMA " pragma)])
+                  "WRITER POOL PRAGMA:"
+                  (jdbc/execute-one! cw [(str "PRAGMA " pragma)]))))
 
-    (db-migrate/migrate! ds)
-
-    ;; Always run optimize at startup, after all
-    ;; configurations are set and DDLs are executed.
-    ;; https://www.sqlite.org/pragma.html#pragma_optimize
-    (jdbc/execute! ds ["PRAGMA optimize"])
-    ds))
+    {:reader reader-pool
+     :writer writer-pool}))
 
 (defmethod ig/halt-key! :database/primary
   [_ db-spec]
-  (.close db-spec) ; HikariCP pool is closeable
+  ;; HikariCP pool is closeable
+  (.close (:reader db-spec))
+  (.close (:writer db-spec))
   (log/info "Discarding DB. PRIMARY STORE:" db-spec)
   nil)
 
