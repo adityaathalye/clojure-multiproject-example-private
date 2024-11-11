@@ -54,7 +54,8 @@
   :dev {:extra-paths ["dev"]
         :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
                      integrant/repl {:mvn/version "0.3.3"}
-                     dev.weavejester/cljfmt {:mvn/version "0.13.0"}}}
+                     dev.weavejester/cljfmt {:mvn/version "0.13.0"}
+                     djblue/portal {:mvn/version "0.58.2"}}}
   :test {:extra-paths ["test"]
          :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
                       io.github.cognitect-labs/test-runner
