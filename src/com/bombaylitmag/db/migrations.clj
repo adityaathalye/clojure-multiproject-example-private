@@ -1,5 +1,5 @@
 (ns com.bombaylitmag.db.migrations
-  (:require [com.bombaylitmag.db.utils :as db-utils]
+  (:require [com.bombaylitmag.db.utils :as db-utils :refer [reader writer]]
             [next.jdbc :as jdbc]
             [clojure.tools.logging :as log]))
 
@@ -10,6 +10,7 @@
 
 (defn migrate!
   [ds]
-  (with-open [ds (jdbc/get-connection ds)]
+  (with-open [ds (writer ds)]
     (log/info "MIGRATING DDL" (select-keys sql-queries [::ddl]))
+    (log/info "DB connection is: " ds)
     ds))

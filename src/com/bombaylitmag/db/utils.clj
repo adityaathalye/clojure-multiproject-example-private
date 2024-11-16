@@ -4,6 +4,11 @@
   (:import [java.util Date TimeZone]
            [java.text SimpleDateFormat]))
 
+(defprotocol IDatabaseConnectionPool
+  (reader [pool])
+  (writer [pool])
+  (readwrite [pool]))
+
 (defn timestamp!
   "Copied from yogthos/migratus."
   []

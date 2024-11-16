@@ -6,36 +6,53 @@
    [next.jdbc.connection :as jdbc-conn]
    [ring.adapter.jetty]
    [com.bombaylitmag.db.migrations :as db-migrate]
+   [com.bombaylitmag.db.utils :as db-utils]
    [next.jdbc :as jdbc])
   (:import [com.zaxxer.hikari HikariDataSource]))
 
 (defn config
   [env]
-  {:runtime/env env
-   :database/primary {:dbtype "sqlite"
-                      :dbname (format "db/mothra_%s.sqlite3" (name env))
-                      ;; GLOBAL PRAGMAS and settings
-                      :journal_mode "WAL" ; supported by xerial JDBC driver
-                      :connectionTestQuery "VACUUM;"
-                      ;; PER-CONNECTION PRAGMAS for use via HikariCP
-                      ;; - Pass PRAGMA key/value pairs under :dataSourceProperties,
-                      ;;   as per next.jdbc's advice for Connection Pooling with HikariCP.
-                      ;; - Map the underlying xerial driver's ENUM definition to the actual
-                      ;;   SQLite PRAGMAs, because naming is hard and names change.
-                      ;;   https://github.com/xerial/sqlite-jdbc/blob/master/src/main/java/org/sqlite/SQLiteConfig.java#L382
-                      :dataSourceProperties {;; PER CONNECTION PRAGMAS (must be set fresh for each connection)
-                                             :temp_store 2 ; 2 = MEMORY, set per connection
-                                             :busy_timeout 5000 ; ms, set per connection
-                                             :limit_worker_threads 4 ; set per connection
-                                             :foreign_keys 1 ; boolean 1 = ON, set per connection
-                                             :cache_size -50000 ; KiB = 50 MiB, set per connection
-                                             :synchronous 1 ; 1 = NORMAL, set per connection
-                                             }}
+  {:runtime/runtime {:env env
+                     :total-memory (.totalMemory (Runtime/getRuntime))
+                     :available-processors (.availableProcessors (Runtime/getRuntime))
+                     :version (.toString (Runtime/version))}
+   :database/primary {:db-spec-common
+                      {;; GLOBAL PRAGMAS and settings
+                       :dbtype "sqlite"
+                       :dbname (format "db/mothra_%s.sqlite3" (name env))
+                       :journal_mode "WAL" ; supported by xerial JDBC driver
+                       :auto_vacuum 2 ; not supported by xerial. Set manually.
+                       :connectionTestQuery "VACUUM;"
+                       ;; PER-CONNECTION PRAGMAS for use via HikariCP
+                       ;; - Pass PRAGMA key/value pairs under :dataSourceProperties,
+                       ;;   as per next.jdbc's advice for Connection Pooling with HikariCP.
+                       ;; - Map the underlying xerial driver's ENUM definition to the actual
+                       ;;   SQLite PRAGMAs, because naming is hard and names change.
+                       ;;   https://github.com/xerial/sqlite-jdbc/blob/master/src/main/java/org/sqlite/SQLiteConfig.java#L382
+                       ;; - These properties must be set fresh for each connection.
+                       :dataSourceProperties {;; Properties common to reader and writer
+                                              :temp_store 2 ; 2 = MEMORY, set per connection
+                                              :busy_timeout 5000 ; ms, set per connection
+                                              :foreign_keys 1 ; boolean 1 = ON, set per connection
+                                              :cache_size -50000 ; KiB = 50 MiB, set per connection
+                                              :synchronous 1 ; 1 = NORMAL, set per connection
+                                              }}
+                      :db-spec-read-only {::dataSourceProperties
+                                          {;; make writes fail
+                                           :read-only true
+                                           ;; use all available processors
+                                           :limit_worker_threads (:available-processors (ig/ref :runtime/runtime))}}
+                      :db-spec-read-write {::dataSourceProperties
+                                           {;; allow writes and reads
+                                            :read-only false
+                                            ;; permit only one writer at a time
+                                            :limit_worker_threads 1}}}
+
    :database/sessions {:dbtype "sqlite"
                        :dbname (format "db/mothra_sessions_%s.sqlite3" (name env))}
-   :handler/run-app {:system {:db (ig/ref :database/primary)
-                              :sessions (ig/ref :database/sessions)
-                              :env (ig/ref :runtime/env)}}
+   :handler/run-app {:db (ig/ref :database/primary)
+                     :sessions (ig/ref :database/sessions)
+                     :env (:env (ig/ref :runtime/runtime))}
    :adapter/jetty {:handler (ig/ref :handler/run-app) :port 3000}})
 
 (defmethod ig/init-key :runtime/env
@@ -43,45 +60,44 @@
   (log/info "Runtime environment is:" env)
   env)
 
+(defmethod ig/init-key :runtime/runtime
+  [_ config]
+  config)
+
 (defmethod ig/init-key :database/primary
-  [_ db-spec]
+  [_ {:keys [db-spec-common
+             db-spec-read-only
+             db-spec-read-write]}]
   ;; No need to separate out read and write paths IF SQLite was
   ;; compiled to operate in `serialized` mode (which is the default)
   ;; ref: https://www.sqlite.org/threadsafe.html
   ;;
   ;; TODO: Test the read/write characteristics in WAL mode.
+  (log/info "DB SETUP. PRIMARY STORE:" (select-keys db-spec-common [:dbtype :dbname]))
+  (let [reader-pool ^HikariDataSource (->> db-spec-read-only
+                                           (merge-with merge db-spec-common)
+                                           (jdbc-conn/->pool HikariDataSource))
+        writer-pool ^HikariDataSource (->> db-spec-read-write
+                                           (merge-with merge db-spec-common)
+                                           (jdbc-conn/->pool HikariDataSource))]
+    ;; next.jdbc doc says to fetch and then open/close a connection
+    ;; to initialize a pool and perform validation check.
+    ;; Using with-open on the read and write paths does it for us.
+    (with-open [writer-conn (jdbc/get-connection writer-pool)]
+      ;; xerial's pragma ENUM properties do not include auto_vacuum,
+      ;; so we have to do this manually, instead of via config. Sigh.
+      (jdbc/execute! writer-conn ["PRAGMA auto_vacuum = ?"
+                                  (:auto-vacuum db-spec-common)])
+      ;; auto_vacuum value gets set only after vacuum
+      (jdbc/execute! writer-conn ["VACUUM"])
 
-  (log/info "DB SETUP. PRIMARY STORE:" db-spec)
-  ;; xerial's pragma ENUM does not define auto_vacuum,
-  ;; so we have to do this manually. Sigh.
-  (with-open [conn (jdbc/get-connection db-spec)]
-    (jdbc/execute! conn ["PRAGMA auto_vacuum = 2"]) ; 2 = INCREMENTAL
-    ;; auto_vacuum value gets set only after vacuum
-    (jdbc/execute! conn ["VACUUM"]))
+      ;; Always run optimize at startup, after all
+      ;; configurations are set and DDLs are executed.
+      ;; https://www.sqlite.org/pragma.html#pragma_optimize
+      (jdbc/execute! writer-conn ["PRAGMA optimize"]))
 
-  ;; Always run optimize at startup, after all
-  ;; configurations are set and DDLs are executed.
-  ;; https://www.sqlite.org/pragma.html#pragma_optimize
-  (jdbc/execute! db-spec ["PRAGMA optimize"])
-
-  ;; Construct a write path and a read path
-  (let [reader-db-spec (assoc db-spec
-                              :read-only true ; ensure writes fail
-                              :maximum-pool-size 4)
-        writer-db-spec (assoc db-spec
-                              :read-only false
-                              :maximum-pool-size 1)
-        reader-pool ^HikariDataSource (jdbc-conn/->pool HikariDataSource
-                                                        reader-db-spec)
-        writer-pool ^HikariDataSource (jdbc-conn/->pool HikariDataSource
-                                                        writer-db-spec)]
-    ;; next.jdbc doc says to open/close a connection to
-    ;; initialize the reader-pool and perform the validation check:
-    (.close (jdbc/get-connection reader-pool))
-    (.close (jdbc/get-connection writer-pool))
-
-    (with-open [cr (jdbc/get-connection reader-pool)
-                cw (jdbc/get-connection writer-pool)]
+    (with-open [writer-conn (jdbc/get-connection writer-pool)
+                reader-conn (jdbc/get-connection reader-pool)]
       (doseq [pragma ["journal_mode"
                       "auto_vacuum"
                       "threads"
@@ -92,18 +108,22 @@
                       "synchronous"]]
         (log/info "DB SETUP. PRIMARY STORE."
                   "READER POOL PRAGMA:"
-                  (jdbc/execute-one! cr [(str "PRAGMA " pragma)])
+                  (jdbc/execute-one! reader-conn [(str "PRAGMA " pragma)])
                   "WRITER POOL PRAGMA:"
-                  (jdbc/execute-one! cw [(str "PRAGMA " pragma)]))))
+                  (jdbc/execute-one! writer-conn [(str "PRAGMA " pragma)]))))
 
-    {:reader reader-pool
-     :writer writer-pool}))
+    ;; Construct DB connector with separate write path and read path
+    ;; suited for SQLite in WAL mode.
+    (reify
+      db-utils/IDatabaseConnectionPool
+      (reader [_] (jdbc/get-connection reader-pool))
+      (writer [_] (jdbc/get-connection writer-pool)))))
 
 (defmethod ig/halt-key! :database/primary
   [_ db-spec]
   ;; HikariCP pool is closeable
-  (.close (:reader db-spec))
-  (.close (:writer db-spec))
+  (.close (db-utils/reader db-spec))
+  (.close (db-utils/writer db-spec))
   (log/info "Discarding DB. PRIMARY STORE:" db-spec)
   nil)
 
@@ -121,7 +141,11 @@
   nil)
 
 (defmethod ig/init-key :handler/run-app
-  [_ {:keys [system]}]
+  [_ {:keys [db sessions env] :as system}]
+  (log/info (format "Running app handler in %s environment method with config %s"
+                    env system))
+  (with-open [cr (jdbc/get-connection (db-utils/reader db))
+              cw (jdbc/get-connection (db-utils/writer db))])
   (handlers-core/app system))
 
 (defmethod ig/init-key :adapter/jetty
@@ -143,4 +167,10 @@
 (comment
   (user/reset)
 
-   )
+  (require '[integrant.repl.state :as ig-state])
+
+  (let [ds (get-in ig-state/system [:database/primary :reified])]
+    [(db-utils/r ds)
+     (db-utils/w ds)])
+
+  (clojure.reflect/reflect (Runtime/getRuntime)))

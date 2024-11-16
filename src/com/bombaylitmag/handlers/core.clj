@@ -57,14 +57,12 @@
 
 (defmethod app :default
   [system]
-  (log/info "Calling app :default method with config (or system?) " system)
   (reitit.ring/ring-handler
    (router system)
    (ring-routes)))
 
 (defmethod app :dev
   [system]
-  (log/info "Calling app :dev method with config (or system?) " system)
   (reitit.ring/reloading-ring-handler
    #(reitit.ring/ring-handler
      (router system)
