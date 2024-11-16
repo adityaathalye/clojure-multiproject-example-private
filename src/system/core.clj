@@ -1,4 +1,4 @@
-(ns com.bombaylitmag.system.core
+(ns system.core
   (:require
    [clojure.tools.logging :as log]
    [com.bombaylitmag.handlers.core :as handlers-core]
@@ -12,48 +12,23 @@
 
 (defn config
   [env]
-  {:runtime/runtime {:env env
-                     :total-memory (.totalMemory (Runtime/getRuntime))
-                     :available-processors (.availableProcessors (Runtime/getRuntime))
-                     :version (.toString (Runtime/version))}
-   :database/primary {:db-spec-common
-                      {;; GLOBAL PRAGMAS and settings
-                       :dbtype "sqlite"
-                       :dbname (format "db/mothra_%s.sqlite3" (name env))
-                       :journal_mode "WAL" ; supported by xerial JDBC driver
-                       :auto_vacuum 2 ; not supported by xerial. Set manually.
-                       :connectionTestQuery "VACUUM;"
-                       ;; PER-CONNECTION PRAGMAS for use via HikariCP
-                       ;; - Pass PRAGMA key/value pairs under :dataSourceProperties,
-                       ;;   as per next.jdbc's advice for Connection Pooling with HikariCP.
-                       ;; - Map the underlying xerial driver's ENUM definition to the actual
-                       ;;   SQLite PRAGMAs, because naming is hard and names change.
-                       ;;   https://github.com/xerial/sqlite-jdbc/blob/master/src/main/java/org/sqlite/SQLiteConfig.java#L382
-                       ;; - These properties must be set fresh for each connection.
-                       :dataSourceProperties {;; Properties common to reader and writer
-                                              :temp_store 2 ; 2 = MEMORY, set per connection
-                                              :busy_timeout 5000 ; ms, set per connection
-                                              :foreign_keys 1 ; boolean 1 = ON, set per connection
-                                              :cache_size -50000 ; KiB = 50 MiB, set per connection
-                                              :synchronous 1 ; 1 = NORMAL, set per connection
-                                              }}
-                      :db-spec-read-only {::dataSourceProperties
-                                          {;; make writes fail
-                                           :read-only true
-                                           ;; use all available processors
-                                           :limit_worker_threads (:available-processors (ig/ref :runtime/runtime))}}
-                      :db-spec-read-write {::dataSourceProperties
-                                           {;; allow writes and reads
-                                            :read-only false
-                                            ;; permit only one writer at a time
-                                            :limit_worker_threads 1}}}
+  {:system.runtime/environment {:type env
+                                :total-memory (.totalMemory (Runtime/getRuntime))
+                                :available-processors (.availableProcessors (Runtime/getRuntime))
+                                :version (.toString (Runtime/version))}
+   :system.database/primary (assoc (ig/ref :settings/sqlite)
+                                   :dbname (format "db/mothra_%s.sqlite3" (name env)))
+   :system.database/sessions (assoc (ig/ref :database/sqlite)
+                                    :dbname (format "db/mothra_sessions_%s.sqlite3" (name env)))
+   :system.app/context {:db (ig/ref :database/primary)
+                        :sessions (ig/ref :database/sessions)
+                        :env (:env (ig/ref :runtime/runtime))}
+   :system.app/handler (ig/ref :system.app/context)
+   :system.app/server {:handler (ig/ref :system.app/handler) :port 3000}})
 
-   :database/sessions {:dbtype "sqlite"
-                       :dbname (format "db/mothra_sessions_%s.sqlite3" (name env))}
-   :handler/run-app {:db (ig/ref :database/primary)
-                     :sessions (ig/ref :database/sessions)
-                     :env (:env (ig/ref :runtime/runtime))}
-   :adapter/jetty {:handler (ig/ref :handler/run-app) :port 3000}})
+(defn init
+  [env]
+  (ig/init (config env)))
 
 (defmethod ig/init-key :runtime/env
   [_ env]
@@ -65,9 +40,7 @@
   config)
 
 (defmethod ig/init-key :database/primary
-  [_ {:keys [db-spec-common
-             db-spec-read-only
-             db-spec-read-write]}]
+  [_ db-spec]
   ;; No need to separate out read and write paths IF SQLite was
   ;; compiled to operate in `serialized` mode (which is the default)
   ;; ref: https://www.sqlite.org/threadsafe.html
@@ -159,10 +132,6 @@
 (defmethod ig/halt-key! :adapter/jetty [_ server]
   (log/info "Stopping Jetty server.")
   (.stop server))
-
-(defn init
-  [env]
-  (ig/init (config env)))
 
 (comment
   (user/reset)

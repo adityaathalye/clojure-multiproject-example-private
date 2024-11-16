@@ -1,5 +1,5 @@
 (ns com.bombaylitmag.mothra
-  (:require [com.bombaylitmag.system.core :as system]
+  (:require [system.core :as system]
 
             [clojure.tools.logging :as log])
   (:gen-class))

@@ -9,6 +9,9 @@
   (writer [pool])
   (readwrite [pool]))
 
+(defmulti connection-pool
+  )
+
 (defn timestamp!
   "Copied from yogthos/migratus."
   []

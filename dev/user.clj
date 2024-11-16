@@ -2,7 +2,7 @@
   (:require [integrant.repl :as ig-repl]
             [integrant.repl.state :as ig-state]
             [clojure.tools.namespace.repl :as repl]
-            [com.bombaylitmag.system.core]
+            [system.core]
             [clojure.repl.deps :as repl-deps :refer [add-lib]]
             [portal.api :as p]
             [clojure.reflect :as reflect]))
