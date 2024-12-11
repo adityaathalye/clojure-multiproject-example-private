@@ -1,0 +1,5 @@
+{:app-name "OVERRIDE_ME_PLACEHOLDER"
+ :runtime-environment-type "dev"
+ :system-modules [:system.sqlite
+                  :system.runtime
+                  :system.application]}
