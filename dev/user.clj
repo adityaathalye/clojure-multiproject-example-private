@@ -5,12 +5,16 @@
             [system.core]
             [clojure.repl.deps :as repl-deps :refer [add-lib]]
             [portal.api :as p]
-            [clojure.reflect :as reflect]))
+            [clojure.reflect :as reflect]
+            [settings.core :as settings]
+            [system.core :as system]))
 
-(ig-repl/set-prep! (constantly (com.bombaylitmag.system.core/config :dev)))
+(ig-repl/set-prep! (fn []
+                     (system/init (settings/make-settings
+                                        (settings/read-settings! "settings/com/bombaylitmag/settings.edn")))))
 
 ;; ref: https://ryanmartin.me/articles/clojure-fly/
-(repl/set-refresh-dirs "src" "resources")
+(repl/set-refresh-dirs "src" "resources" "system" "settings")
 
 (def go ig-repl/go)
 (def halt ig-repl/halt)
@@ -30,7 +34,7 @@
   (add-tap #'p/submit)
 
   (p/stop)
-  (p/start)
+  #_(p/start)
 
   (tap> ig-state/system)
 

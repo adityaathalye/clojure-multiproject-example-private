@@ -1,4 +1,9 @@
 (ns system.core
+  "OR pull in a library of pre-built Component components under the
+  'system' directory. ORrrrr vendor the code for visibility. e.g. If we
+  add danielsz/system as a git submodule (the only, and the only sane
+  way to use submodules) under our 'system' directory, then BOOM, we
+  have all the recipes. https://danielsz.github.io/system/"
   (:require
    [clojure.tools.logging :as log]
    [com.bombaylitmag.handlers.core :as handlers-core]
@@ -7,133 +12,71 @@
    [ring.adapter.jetty]
    [com.bombaylitmag.db.migrations :as db-migrate]
    [com.bombaylitmag.db.utils :as db-utils]
-   [next.jdbc :as jdbc])
-  (:import [com.zaxxer.hikari HikariDataSource]))
+   [next.jdbc :as jdbc]
+   [settings.core :as settings])
+  (:import [com.zaxxer.hikari HikariDataSource])
+  (:gen-class))
 
-(defn config
-  [env]
-  {:system.runtime/environment {:type env
-                                :total-memory (.totalMemory (Runtime/getRuntime))
-                                :available-processors (.availableProcessors (Runtime/getRuntime))
-                                :version (.toString (Runtime/version))}
-   :system.database/primary (assoc (ig/ref :settings/sqlite)
-                                   :dbname (format "db/mothra_%s.sqlite3" (name env)))
-   :system.database/sessions (assoc (ig/ref :database/sqlite)
-                                    :dbname (format "db/mothra_sessions_%s.sqlite3" (name env)))
-   :system.app/context {:db (ig/ref :database/primary)
-                        :sessions (ig/ref :database/sessions)
-                        :env (:env (ig/ref :runtime/runtime))}
-   :system.app/handler (ig/ref :system.app/context)
-   :system.app/server {:handler (ig/ref :system.app/handler) :port 3000}})
+(defn module-name
+  []
+  (keyword (ns-name *ns*)))
+
+#_(def build-config-map nil)
+(defmulti build-config-map
+  ::module)
+
+(defmethod ig/init-key ::settings
+  [_ {:keys [app-name runtime-environment-type]
+      :as settings}]
+  (assoc settings
+         :app-name (name app-name)
+         :runtime-environment (name runtime-environment-type)))
 
 (defn init
-  [env]
-  (ig/init (config env)))
+  "The way init works, the ::settings map never appears in the
+   config. This is intentional. Settings can contain secrets that we
+   don't want to have to remember to elide from the final configuration."
+  [{:keys [system-modules] :as settings}]
+  (let [cfg {::settings settings}
+        cfg (reduce (fn [system-configuration module-name]
+                      (into system-configuration
+                            (build-config-map (assoc cfg
+                                                     ::module module-name))))
+                    {}
+                    system-modules)]
+    (ig/load-namespaces cfg)
+    (ig/init cfg)))
 
-(defmethod ig/init-key :runtime/env
-  [_ env]
-  (log/info "Runtime environment is:" env)
-  env)
+(comment
+  (let [settings (settings/make-settings
+                  (settings/read-settings! "settings/com/bombaylitmag/settings.edn"))]
+    (init settings))
+  )
 
-(defmethod ig/init-key :runtime/runtime
-  [_ config]
-  config)
+(comment
+  (defmethod ig/init-key ::handler
+    [_ handler-context]
+    (log/info (format "Running app handler in %s environment method with config %s"
+                      env system))
+    (with-open [cr (jdbc/get-connection (db-utils/reader db))
+                cw (jdbc/get-connection (db-utils/writer db))])
+    (handlers-core/app system))
 
-(defmethod ig/init-key :database/primary
-  [_ db-spec]
-  ;; No need to separate out read and write paths IF SQLite was
-  ;; compiled to operate in `serialized` mode (which is the default)
-  ;; ref: https://www.sqlite.org/threadsafe.html
-  ;;
-  ;; TODO: Test the read/write characteristics in WAL mode.
-  (log/info "DB SETUP. PRIMARY STORE:" (select-keys db-spec-common [:dbtype :dbname]))
-  (let [reader-pool ^HikariDataSource (->> db-spec-read-only
-                                           (merge-with merge db-spec-common)
-                                           (jdbc-conn/->pool HikariDataSource))
-        writer-pool ^HikariDataSource (->> db-spec-read-write
-                                           (merge-with merge db-spec-common)
-                                           (jdbc-conn/->pool HikariDataSource))]
-    ;; next.jdbc doc says to fetch and then open/close a connection
-    ;; to initialize a pool and perform validation check.
-    ;; Using with-open on the read and write paths does it for us.
-    (with-open [writer-conn (jdbc/get-connection writer-pool)]
-      ;; xerial's pragma ENUM properties do not include auto_vacuum,
-      ;; so we have to do this manually, instead of via config. Sigh.
-      (jdbc/execute! writer-conn ["PRAGMA auto_vacuum = ?"
-                                  (:auto-vacuum db-spec-common)])
-      ;; auto_vacuum value gets set only after vacuum
-      (jdbc/execute! writer-conn ["VACUUM"])
-
-      ;; Always run optimize at startup, after all
-      ;; configurations are set and DDLs are executed.
-      ;; https://www.sqlite.org/pragma.html#pragma_optimize
-      (jdbc/execute! writer-conn ["PRAGMA optimize"]))
-
-    (with-open [writer-conn (jdbc/get-connection writer-pool)
-                reader-conn (jdbc/get-connection reader-pool)]
-      (doseq [pragma ["journal_mode"
-                      "auto_vacuum"
-                      "threads"
-                      "temp_store"
-                      "busy_timeout"
-                      "foreign_keys"
-                      "cache_size"
-                      "synchronous"]]
-        (log/info "DB SETUP. PRIMARY STORE."
-                  "READER POOL PRAGMA:"
-                  (jdbc/execute-one! reader-conn [(str "PRAGMA " pragma)])
-                  "WRITER POOL PRAGMA:"
-                  (jdbc/execute-one! writer-conn [(str "PRAGMA " pragma)]))))
-
-    ;; Construct DB connector with separate write path and read path
-    ;; suited for SQLite in WAL mode.
-    (reify
-      db-utils/IDatabaseConnectionPool
-      (reader [_] (jdbc/get-connection reader-pool))
-      (writer [_] (jdbc/get-connection writer-pool)))))
-
-(defmethod ig/halt-key! :database/primary
-  [_ db-spec]
-  ;; HikariCP pool is closeable
-  (.close (db-utils/reader db-spec))
-  (.close (db-utils/writer db-spec))
-  (log/info "Discarding DB. PRIMARY STORE:" db-spec)
-  nil)
-
-(defmethod ig/init-key :database/sessions
-  [_ db-spec]
-  (log/info "DB SETUP. SESSION STORE:" db-spec)
-  (let [conn (jdbc-conn/->pool com.zaxxer.hikari.HikariDataSource
-                               db-spec)]
-    #_(populate conn (:dbtype db-spec))
-    conn))
-
-(defmethod ig/halt-key! :database/sessions
-  [_ db-spec]
-  (log/info "Discarding DB. SESSION STORE:" db-spec)
-  nil)
-
-(defmethod ig/init-key :handler/run-app
-  [_ {:keys [db sessions env] :as system}]
-  (log/info (format "Running app handler in %s environment method with config %s"
-                    env system))
-  (with-open [cr (jdbc/get-connection (db-utils/reader db))
-              cw (jdbc/get-connection (db-utils/writer db))])
-  (handlers-core/app system))
-
-(defmethod ig/init-key :adapter/jetty
-  [_ {:keys [handler] :as opts}]
-  (log/info "Starting Jetty server at port: " (:port opts))
-  (ring.adapter.jetty/run-jetty handler
-                                (-> opts
-                                    (dissoc handler)
-                                    (assoc :join? false))))
+  (defmethod ig/init-key :adapter/jetty
+    [_ {:keys [handler] :as opts}]
+    (log/info "Starting Jetty server at port: " (:port opts))
+    (ring.adapter.jetty/run-jetty handler
+                                  (-> opts
+                                      (dissoc handler)
+                                      (assoc :join? false)))))
 
 (defmethod ig/halt-key! :adapter/jetty [_ server]
   (log/info "Stopping Jetty server.")
   (.stop server))
 
 (comment
+  (settings/make-settings {:app-name "testing-system"})
+
   (user/reset)
 
   (require '[integrant.repl.state :as ig-state])
@@ -141,5 +84,8 @@
   (let [ds (get-in ig-state/system [:database/primary :reified])]
     [(db-utils/r ds)
      (db-utils/w ds)])
+
+  (ig/expand-key [::db ::primary] {:dbname (format "%s_%s" app-name env)
+                 :pool (ig/ref [:system.sqlite/db :system.sqlite/primary])})
 
   (clojure.reflect/reflect (Runtime/getRuntime)))

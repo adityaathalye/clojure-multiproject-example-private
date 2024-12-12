@@ -1,6 +1,5 @@
 (ns com.bombaylitmag.mothra
   (:require [system.core :as system]
-
             [clojure.tools.logging :as log])
   (:gen-class))
 
@@ -9,4 +8,4 @@
   (let [env (or (first args) :dev)
         env (keyword env)]
     (log/info "Invoking -main with environment" env)
-    (system/init env)))
+    (system/init "mothra" env)))

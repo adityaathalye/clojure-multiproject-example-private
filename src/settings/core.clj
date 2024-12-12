@@ -1,7 +1,8 @@
 (ns settings.core
   (:require
    [clojure.java.io :as io]
-   [clojure.edn :as edn]))
+   [clojure.edn :as edn])
+  (:gen-class))
 
 (def default-settings-edn-file
   "TODO: Write a specification for this file. Optionally use aero to manage it."
