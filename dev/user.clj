@@ -2,19 +2,19 @@
   (:require [integrant.repl :as ig-repl]
             [integrant.repl.state :as ig-state]
             [clojure.tools.namespace.repl :as repl]
-            [system.core]
             [clojure.repl.deps :as repl-deps :refer [add-lib]]
             [portal.api :as p]
             [clojure.reflect :as reflect]
             [settings.core :as settings]
             [system.core :as system]))
 
-(ig-repl/set-prep! (fn []
-                     (system/init (settings/make-settings
-                                        (settings/read-settings! "settings/com/bombaylitmag/settings.edn")))))
+(ig-repl/set-prep!
+ (fn []
+   (system/init (settings/make-settings
+                 (settings/read-settings! "settings/com/bombaylitmag/settings.edn")))))
 
 ;; ref: https://ryanmartin.me/articles/clojure-fly/
-(repl/set-refresh-dirs "src" "resources" "system" "settings")
+(repl/set-refresh-dirs "src" "resources" "grugstack")
 
 (def go ig-repl/go)
 (def halt ig-repl/halt)

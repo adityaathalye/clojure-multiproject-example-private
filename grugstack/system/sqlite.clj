@@ -12,6 +12,7 @@
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [system.core :as system])
+  (:import [com.zaxxer.hikari HikariDataSource])
   (:gen-class))
 
 (defmethod system/build-config-map :system.sqlite

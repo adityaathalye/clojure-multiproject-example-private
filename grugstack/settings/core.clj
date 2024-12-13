@@ -36,6 +36,6 @@
   (make-settings {:app-name "custom-app-name"})
 
   (make-settings (read-settings! default-settings-edn-file)
-                 (read-settings! "settings/com/bombaylitmag/settings.edn"))
+                 (read-settings! "com/example/settings.edn"))
 
   )

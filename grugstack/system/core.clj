@@ -6,15 +6,14 @@
   have all the recipes. https://danielsz.github.io/system/"
   (:require
    [clojure.tools.logging :as log]
-   [com.bombaylitmag.handlers.core :as handlers-core]
+   ;; [com.bombaylitmag.handlers.core :as handlers-core]
    [integrant.core :as ig]
    [next.jdbc.connection :as jdbc-conn]
    [ring.adapter.jetty]
-   [com.bombaylitmag.db.migrations :as db-migrate]
-   [com.bombaylitmag.db.utils :as db-utils]
+   ;; [com.bombaylitmag.db.migrations :as db-migrate]
+   ;; [com.bombaylitmag.db.utils :as db-utils]
    [next.jdbc :as jdbc]
    [settings.core :as settings])
-  (:import [com.zaxxer.hikari HikariDataSource])
   (:gen-class))
 
 (defn module-name
@@ -37,6 +36,7 @@
    config. This is intentional. Settings can contain secrets that we
    don't want to have to remember to elide from the final configuration."
   [{:keys [system-modules] :as settings}]
+  (apply require (map symbol system-modules))
   (let [cfg {::settings settings}
         cfg (reduce (fn [system-configuration module-name]
                       (into system-configuration
@@ -49,7 +49,7 @@
 
 (comment
   (let [settings (settings/make-settings
-                  (settings/read-settings! "settings/com/bombaylitmag/settings.edn"))]
+                  (settings/read-settings! "com/example/settings.edn"))]
     (init settings))
   )
 
