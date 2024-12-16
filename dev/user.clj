@@ -9,9 +9,8 @@
             [system.core :as system]))
 
 (ig-repl/set-prep!
- (fn []
-   (system/init (settings/make-settings
-                 (settings/read-settings! "settings/com/bombaylitmag/settings.edn")))))
+ #(system/expand (settings/make-settings
+                  (settings/read-settings! "com/bombaylitmag/settings.edn"))))
 
 ;; ref: https://ryanmartin.me/articles/clojure-fly/
 (repl/set-refresh-dirs "src" "resources" "grugstack")

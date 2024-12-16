@@ -31,21 +31,26 @@
          :app-name (name app-name)
          :runtime-environment (name runtime-environment-type)))
 
-(defn init
-  "The way init works, the ::settings map never appears in the
-   config. This is intentional. Settings can contain secrets that we
-   don't want to have to remember to elide from the final configuration."
+(defn expand
   [{:keys [system-modules] :as settings}]
   (apply require (map symbol system-modules))
   (let [cfg {::settings settings}
         cfg (reduce (fn [system-configuration module-name]
-                      (into system-configuration
-                            (build-config-map (assoc cfg
-                                                     ::module module-name))))
+                      (merge system-configuration
+                             (build-config-map (assoc cfg
+                                                      ::module module-name))))
                     {}
                     system-modules)]
+    (ig/expand cfg)))
+
+(defn init
+  "The way init works, the ::settings map never appears in the
+   config. This is intentional. Settings can contain secrets that we
+   don't want to have to remember to elide from the final configuration."
+  [settings]
+  (let [cfg (expand settings)]
     (ig/load-namespaces cfg)
-    (ig/init cfg)))
+    (-> cfg ig/init)))
 
 (comment
   (let [settings (settings/make-settings
