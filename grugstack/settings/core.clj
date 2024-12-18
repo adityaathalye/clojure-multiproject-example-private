@@ -22,10 +22,12 @@
      (make-settings default-settings
                     custom-settings))
     ([base-settings custom-settings]
-     {:post [(and (:app-name %)
-                  (not= (:app-name %) "OVERRIDE_ME_PLACEHOLDER"))]}
-     (merge base-settings
-            custom-settings))))
+     {:post [(let [app-name (get-in % [:system.core/settings :app-name])]
+               (and app-name
+                    (not= app-name "OVERRIDE_ME_PLACEHOLDER")))]}
+     (merge-with merge
+                 base-settings
+                 custom-settings))))
 
 (comment
 

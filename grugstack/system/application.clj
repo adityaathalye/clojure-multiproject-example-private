@@ -1,23 +1,28 @@
 (ns system.application
-  (:require
-    [integrant.core :as ig]
-    [clojure.tools.logging :as log]
-    [system.core :as system])
+  (:require [integrant.core :as ig]
+            [system.core :as system]
+            [clojure.tools.logging :as log])
   (:gen-class))
 
 (defmethod system/build-config-map :system.application
-  [_]
-  {::middleware [(fn [_]
-                   (assert "Middleware absent. Please define explicitly."))]
-   ::handler (fn [_request]
-               {:status 200
-                :body "Dummy handler. Please override me at system start."})
-   ::server {:server/type :jetty
-             :server/port 3000
-             :server/app (ig/ref ::handler)}})
+  [{:system.application/keys [middleware handler server]}]
+  {::middleware (or (resolve (symbol middleware))
+                    (fn [_handler]
+                      (fn [_request]
+                        (assert "Middleware absent. Please define explicitly."))))
+   ::handler (or (resolve (symbol handler))
+                 (fn [_request]
+                   {:status 200
+                    :body "Dummy handler. Please override me at system start."}))
+   ::server (merge {:type :jetty
+                    :port 1337
+                    :app (ig/ref ::handler)}
+                   server)})
 
 (comment
-  (system/build-config-map {:system.core/module :system.application})
+  (system/build-config-map {:system.core/module :system.application
+                            ::middleware 'identity
+                            ::handler 'identity})
   )
 
 (defmethod ig/init-key ::middleware

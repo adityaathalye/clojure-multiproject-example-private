@@ -31,3 +31,4 @@
 /doc/*.webm
 /data
 /db
+*.sqlite3

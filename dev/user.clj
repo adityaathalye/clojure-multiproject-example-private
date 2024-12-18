@@ -26,16 +26,19 @@
   (reset)
   (reset-all)
 
-  (reflect/reflect ig-state/system)
+  ig-state/system
 
-  ;; Open portal
-  (p/open)
-  (add-tap #'p/submit)
-
-  (p/stop)
-  #_(p/start)
+  (do ;; open fresh portal
+    (p/clear)
+    (p/close)
+    (p/open)
+    (add-tap #'p/submit))
 
   (tap> ig-state/system)
+
+  (p/clear)
+
+  #_(p/start)
 
   (tap> (.getConnection (get-in ig-state/system [:database/primary :reader])))
 
