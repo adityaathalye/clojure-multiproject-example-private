@@ -4,8 +4,7 @@
                                          :system.runtime
                                          :system.application
                                          :system.server]}
- :system.application/middleware 'replace.me/please
- :system.application/handler 'replace.me/please
- :system.application/server {:type :jetty
-                             :port 3000}
- }
+ :system.application/ring {:middleware 'replace.me/please
+                           :handler 'replace.me/please
+                           :server {:type :jetty
+                                    :port 3000}}}

@@ -1,7 +1,5 @@
-(ns com.bombaylitmag.handlers.common
-  (:require [com.bombaylitmag.db.migrations :as db-migrate]
-            [com.bombaylitmag.layouts.default :as default-layout]
-            [hiccup.page :as hp]
+(ns interfaces.layouts.handlers
+  (:require [hiccup.page :as hp]
             [hiccup2.core :as hc]
             [ring.util.response :as res]))
 
@@ -9,15 +7,15 @@
 
 (defmulti hydrate-view
   "Handle requests based on `:system.application/view` context information injected
-into the request map, by middleware. This way, we can declare context
-information at the routing table, and conveniently trace route - view
-relationship."
+  into the request map, by middleware. This way, we can declare context
+  information at the routing table, and conveniently trace route - view
+  relationship."
   (comp :template :system.application/view))
 
 (defmethod hydrate-view :default
-  [{{:keys [page-name content]} :system.application/view
+  [{{:keys [page-name content page-template]} :system.application/view
     :as request}]
-  (default-layout/page-template
+  (page-template
    {:page-name (or page-name (:uri request))
     :content (or content [:p [:strong "Sorry, no content available."]])}))
 

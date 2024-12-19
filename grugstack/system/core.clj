@@ -61,13 +61,13 @@
   )
 
 (comment
-  (defmethod ig/init-key ::handler
-    [_ handler-context]
-    (log/info (format "Running app handler in %s environment method with config %s"
-                      env system))
-    (with-open [cr (jdbc/get-connection (db-utils/reader db))
-                cw (jdbc/get-connection (db-utils/writer db))])
-    (handlers-core/app system))
+  ;; (defmethod ig/init-key ::handler
+  ;;   [_ handler-context]
+  ;;   (log/info (format "Running app handler in %s environment method with config %s"
+  ;;                     env system))
+  ;;   (with-open [cr (jdbc/get-connection (db-utils/reader db))
+  ;;               cw (jdbc/get-connection (db-utils/writer db))])
+  ;;   (handlers-core/app system))
 
   (defmethod ig/init-key :adapter/jetty
     [_ {:keys [handler] :as opts}]
