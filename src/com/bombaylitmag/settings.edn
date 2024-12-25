@@ -3,4 +3,6 @@
                         :system-modules [:system.sqlite
                                          :system.runtime
                                          :system.application
-                                         :system.server]}}
+                                         :system.server
+                                         :com.bombaylitmag.handlers.core]}
+ :system.server/jetty-adapter {:port 13338}}

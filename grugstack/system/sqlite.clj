@@ -37,14 +37,14 @@
    ;; [::defaults ::connection-pool] {:preferredTestQuery "PRAGMA journal_mode;"
    ;;                                 :maxPoolSize 4
    ;;                                 :dataSourceProperties (ig/ref [::defaults ::db-connection-pragmas])}
-   ::primary {:dbtype "sqlite"
-              :dbname (format "%s_%s_primary.sqlite3" app-name runtime-environment-type)
-              :db-pragmas (ig/ref [::defaults ::db-pragmas])
-              :cp-pragmas (ig/ref [::defaults ::connection-pool])}
-   ::sessions {:dbtype "sqlite"
-               :dbname (format "%s_%s_sessions.sqlite3" app-name runtime-environment-type)
-               :db-pragmas (ig/ref [::defaults ::db-pragmas])
-               :cp-pragmas (ig/ref [::defaults ::connection-pool])}})
+   [::db ::primary] {:dbtype "sqlite"
+                     :dbname (format "%s_%s_primary.sqlite3" app-name runtime-environment-type)
+                     :db-pragmas (ig/ref [::defaults ::db-pragmas])
+                     :cp-pragmas (ig/ref [::defaults ::connection-pool])}
+   [::db ::sessions] {:dbtype "sqlite"
+                      :dbname (format "%s_%s_sessions.sqlite3" app-name runtime-environment-type)
+                      :db-pragmas (ig/ref [::defaults ::db-pragmas])
+                      :cp-pragmas (ig/ref [::defaults ::connection-pool])}})
 
 (defmethod ig/init-key ::defaults
   [_ ctx]
@@ -68,10 +68,6 @@
                      (jdbc/execute-one! connection [(str "PRAGMA " pragma)])))
              {}
              pragmas))))
-
-(defn foo
-  [x]
-  {:foo x})
 
 (defn set-up-sqlite!
   [{:keys [dbname dbtype db-pragmas cp-pragmas]
@@ -115,14 +111,9 @@
      :reader reader
      :writer writer}))
 
-(defmethod ig/init-key ::primary
+(defmethod ig/init-key ::db
   [_ db-spec]
-  (log/info "Setting up PRIMARY DB.")
-  (set-up-sqlite! db-spec))
-
-(defmethod ig/init-key ::sessions
-  [_ db-spec]
-  (log/info "Setting up SESSIONS DB.")
+  (log/info (str "Setting up DB: " (:dbname db-spec)))
   (set-up-sqlite! db-spec))
 
 (defmethod ig/halt-key! ::db

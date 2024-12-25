@@ -3,8 +3,4 @@
                         :system-modules [:system.sqlite
                                          :system.runtime
                                          :system.application
-                                         :system.server]}
- :system.application/ring {:middleware 'replace.me/please
-                           :handler 'replace.me/please
-                           :server {:type :jetty
-                                    :port 3000}}}
+                                         :system.server]}}

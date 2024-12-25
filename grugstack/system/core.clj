@@ -16,6 +16,11 @@
    [settings.core :as settings])
   (:gen-class))
 
+(def system-map
+  {::system {:db-primary (ig/ref [:system.sqlite/db :system.sqlite/primary])
+             :db-sessions (ig/ref [:system.sqlite/db :system.sqlite/sessions])
+             :environment (ig/ref :system.runtime/environment)}})
+
 (defn module-name
   []
   (keyword (ns-name *ns*)))
@@ -46,7 +51,12 @@
                     system-modules)]
     (-> cfg
         (dissoc :system.core/settings)
+        (merge system-map)
         ig/expand)))
+
+(defmethod ig/init-key ::system
+  [_ system-map]
+  system-map)
 
 (defn init
   [settings]

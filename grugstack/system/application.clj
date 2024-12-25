@@ -9,7 +9,14 @@
             [ring.util.response :as res])
   (:gen-class))
 
-(defn ring-routes
+(def reitit-route-tree-hello-world-app
+  [""
+   ["/" {:get (constantly {:status 200
+                           :headers {"Content-Type" "text/html"}
+                           :body "<h1>Hello World.</h1>"})}]
+   ["/ping" {:get (constantly {:status 200 :body "Pong"})}]])
+
+(defn reitit-ring-default-routes
   []
   (reitit.ring/routes
    (reitit.ring/redirect-trailing-slash-handler)
@@ -34,16 +41,18 @@
                       (assoc :system.application/view ctx)
                       handler))))})
 
-(defmulti router
-  :env)
+(defmulti reitit-ring-router
+  (fn [system _reitit-route-tree]
+    (get-in system [:environment :type])))
 
-(defmethod router :default
-  [system]
+(defmethod reitit-ring-router :default
+  [system reitit-route-tree]
   ;; Assume dev environment if no known env specified.
-  (router (assoc system :env :dev)))
+  (reitit-ring-router (assoc-in system [:environment :type] :dev)
+                      reitit-route-tree))
 
-(defmethod router :dev
-  [reitit-route-tree system]
+(defmethod reitit-ring-router :dev
+  [system reitit-route-tree]
   (reitit.ring/router
    reitit-route-tree
    {:data {:system system
@@ -55,61 +64,63 @@
                         #_[cors/wrap-cors :access-control-allow-origin #".*"
                            :access-control-allow-methods [:get :put :post :patch :delete]]]}}))
 
-(defmulti app
+(defmulti reitit-ring-handler
   "Given a well-formed system definition, create a Ring app for the system's :runtime/env.
 
   TODO: Consider using Integrant's Profiles to drive this."
   :env)
 
-(defmethod app :default
-  [system]
+(defmethod reitit-ring-handler :default
+  [{:keys [system reitit-route-tree]}]
   (reitit.ring/ring-handler
-   (router system)
-   (ring-routes)))
+   (reitit-ring-router system reitit-route-tree)
+   (reitit-ring-default-routes)))
 
-(defmethod app :dev
-  [system]
+(defmethod reitit-ring-handler :dev
+  [{:keys [system reitit-route-tree]}]
   (reitit.ring/reloading-ring-handler
    #(reitit.ring/ring-handler
-     (router system)
-     (ring-routes))))
+     (reitit-ring-router system reitit-route-tree)
+     (reitit-ring-default-routes))))
 
 (defmethod system/build-config-map :system.application
-  [{{:keys [middleware handler server]} :system.application/ring}]
-  {::ring {:middleware (or (resolve (symbol middleware))
-                           (fn [_handler]
-                             (fn [request]
-                               (log/error "Middleware absent. Please inject via settings.")
-                               request)))
-           :handler (or (resolve (symbol handler))
-                        (fn [_request]
-                          (log/error "Default handler. Please inject via settings.")
-                          {:status 404
-                           :body "Dummy handler. Please override."}))
-           :server (merge {:type :jetty
-                           :port 1337}
-                          server)}})
+  [{:system.application/keys [router handler reitit-route-tree]
+    :or {router 'system.application/reitit-ring-router
+         handler 'system.application/reitit-ring-handler
+         reitit-route-tree 'system.application/reitit-route-tree-hello-world-app}}]
+  {::reitit-ring {:data {:system (ig/ref :system.core/system)
+                         :coercions reitit.coercion.malli/coercion
+                         :middleware [wrap-view-ctx
+                                      rrm-params/parameters-middleware
+                                      rmk-params/wrap-keyword-params
+                                      wrap-system
+                                      #_[cors/wrap-cors :access-control-allow-origin #".*"
+                                         :access-control-allow-methods [:get :put :post :patch :delete]]]}}
+   ::reitit-route-tree reitit-route-tree
+   ::reitit-router router
+   ::handler handler})
 
-(comment
-  (system/build-config-map {:system.core/module :system.application
-                            ::middleware 'identity
-                            ::handler 'identity})
-  )
+(defmethod ig/init-key ::reitit-ring
+  [_ router-parts]
+  (log/info router-parts)
+  router-parts)
 
-(defmethod ig/init-key ::ring
-  [_ middleware-stack]
-  middleware-stack)
+(defmethod ig/init-key ::reitit-router
+  [_ router]
+  (resolve router))
+
+(defmethod ig/init-key ::reitit-route-tree
+  [_ reitit-route-tree]
+  (deref (resolve reitit-route-tree)))
 
 (defmethod ig/init-key ::handler
   [_ handler]
-  handler)
-
-(defmethod ig/init-key ::server
-  [_ server-config]
-  (log/info server-config)
-  server-config)
+  (resolve handler))
 
 (comment
+  (ig/init
+   (merge (system/build-config-map {:system.core/module :system.application})
+          {:system.core/system {:environment {:type :dev}}}))
   (do
     (require 'reitit.core)
 
