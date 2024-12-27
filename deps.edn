@@ -1,5 +1,22 @@
-{:paths ["resources"]
+{:paths ["src" "resources"]
  :deps {grugstack/grugstack {:local/root "grugstack"}
         org.clojure/clojure {:mvn/version "1.12.0"}}
- :aliases {:example_app {:extra-deps {example_app/example_app {:local/root "example_app"}}}
-           :tblm/mothra {:extra-deps {tblm/mothra {:local/root "tblm/mothra"}}}}}
+ :aliases {:run-x {:exec-fn -main}
+           :build {:deps {io.github.clojure/tools.build
+                          {:mvn/version "0.10.5"}}
+                   :ns-default build}
+           :dev {:extra-paths ["dev"]
+                 :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
+                              integrant/repl {:mvn/version "0.3.3"}
+                              dev.weavejester/cljfmt {:mvn/version "0.13.0"}
+                              djblue/portal {:mvn/version "0.58.2"}}}
+           :test {:extra-paths ["test"]
+                  :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                               io.github.cognitect-labs/test-runner
+                               {:git/tag "v0.5.1" :git/sha "dfb30dd"}}}
+           :example_app {:ns-default com.example.core
+                         :main-opts ["-m" "com.example.core"]
+                         :extra-deps {example_app/example_app {:local/root "example_app"}}}
+           :tblm/mothra {:ns-default com.bombaylitmag.mothra
+                         :main-opts ["-m" "com.bombaylitmag.mothra"]
+                         :extra-deps {tblm/mothra {:local/root "tblm/mothra"}}}}}
