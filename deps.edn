@@ -1,22 +1,43 @@
 {:paths ["src" "resources"]
- :deps {grugstack/grugstack {:local/root "grugstack"}
-        org.clojure/clojure {:mvn/version "1.12.0"}}
- :aliases {:run-x {:exec-fn -main}
-           :build {:deps {io.github.clojure/tools.build
-                          {:mvn/version "0.10.5"}}
-                   :ns-default build}
-           :dev {:extra-paths ["dev"]
-                 :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
-                              integrant/repl {:mvn/version "0.3.3"}
-                              dev.weavejester/cljfmt {:mvn/version "0.13.0"}
-                              djblue/portal {:mvn/version "0.58.2"}}}
-           :test {:extra-paths ["test"]
-                  :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
-                               io.github.cognitect-labs/test-runner
-                               {:git/tag "v0.5.1" :git/sha "dfb30dd"}}}
-           :example_app {:ns-default com.example.core
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}}
+ :aliases {;; ALL DEPS SETTINGS CONSOLIDATED
+           :all/run-x {:exec-fn -main}
+           :all/extra-paths [:repo-root/extra-paths
+                             :grugstack/extra-paths
+                             :exampleapp/exampleapp-paths
+                             :tblm/mothra-paths]
+           :all/dev {:extra-paths ["dev" :all/extra-paths]
+                     :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
+                                  integrant/repl {:mvn/version "0.3.3"}
+                                  dev.weavejester/cljfmt {:mvn/version "0.13.0"}
+                                  djblue/portal {:mvn/version "0.58.2"}}}
+           :all/test {:extra-paths ["test" :all/extra-paths]
+                      :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                                   io.github.cognitect-labs/test-runner
+                                   {:git/tag "v0.5.1" :git/sha "dfb30dd"}}}
+           :all/build {:deps {io.github.clojure/tools.build
+                              {:mvn/version "0.10.5"}}
+                       :ns-default build}
+           :all/all {:extra-paths [:all/extra-paths]}
+           ;; GRUGSTACK
+           :grugstack/extra-paths ["grugstack/dev"
+                                   "grugstack/test"
+                                   "grugstack/resources"]
+           :grugstack/grugstack {:extra-paths [:grugstack/extra-paths]
+                                 :extra-deps {grugstack/grugstack {:local/root "grugstack"}}}
+           ;; EXAMPLE APP
+           :com.example/extra-paths ["example_app/dev"
+                                     "example_app/test"
+                                     "example_app/resources"]
+           :com.example {:extra-paths [:exampleapp/exampleapp-paths]
+                         :ns-default com.example.core
                          :main-opts ["-m" "com.example.core"]
                          :extra-deps {example_app/example_app {:local/root "example_app"}}}
-           :tblm/mothra {:ns-default com.bombaylitmag.mothra
-                         :main-opts ["-m" "com.bombaylitmag.mothra"]
-                         :extra-deps {tblm/mothra {:local/root "tblm/mothra"}}}}}
+           ;; BOMBAYLITMAG - MOTHRA
+           :com.bombaylitmag.mothra/extra-paths ["tblm/mothra/dev"
+                                                 "tblm/mothra/test"
+                                                 "tblm/mothra/resources"]
+           :com.bombaylitmag.mothra {:extra-paths [:com.bombaylitmag.mothra/mothra-paths]
+                                     :ns-default com.bombaylitmag.mothra
+                                     :main-opts ["-m" "com.bombaylitmag.mothra"]
+                                     :extra-deps {tblm/mothra {:local/root "tblm/mothra"}}}}}

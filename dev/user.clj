@@ -1,0 +1,48 @@
+(ns user
+  (:require [integrant.repl :as ig-repl]
+            [integrant.repl.state :as ig-state]
+            [clojure.tools.namespace.repl :as repl]
+            [clojure.repl.deps :as repl-deps :refer [add-lib]]
+            [portal.api :as p]
+            [clojure.reflect :as reflect]
+            [settings.core :as settings]
+            [system.core :as system]))
+
+(ig-repl/set-prep!
+ #(system/expand (settings/make-settings
+                  (settings/read-settings! "tblm/mothra/src/com/bombaylitmag/settings.edn"))))
+
+;; ref: https://ryanmartin.me/articles/clojure-fly/
+(repl/set-refresh-dirs "src" "resources" "grugstack")
+
+(def go ig-repl/go)
+(def halt ig-repl/halt)
+(def reset ig-repl/reset)
+(def reset-all ig-repl/reset-all)
+
+(comment
+  (go)
+  (halt)
+  (reset)
+  (reset-all)
+
+  ig-state/system
+
+  (do ;; open fresh portal
+    (do ;; clean stop
+      (p/clear)
+      (p/close))
+    (do ;; reopen and tap
+      (p/open)
+      (add-tap #'p/submit)))
+
+  (tap> ig-state/system)
+
+  (p/clear)
+
+  #_(p/start)
+
+  (tap> (.getConnection (get-in ig-state/system [:database/primary :reader])))
+
+  (add-lib 'sym {:mvn/version "x.y.z"})
+  )
