@@ -1,4 +1,5 @@
-{:deps {org.clojure/clojure {:mvn/version "1.12.0"}
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}
 
         ;; Ring HTTP utilities: https://github.com/ring-clojure/ring
         ring/ring-core {:mvn/version "1.12.2"}
