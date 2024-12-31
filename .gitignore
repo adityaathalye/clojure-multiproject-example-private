@@ -2,6 +2,8 @@
 .calva/repl.calva-repl
 .classpath
 .clj-kondo/.cache
+*/.clj-kondo/.cache
+*/*/.clj-kondo/.cache
 .cpcache
 .eastwood
 .factorypath
@@ -10,6 +12,8 @@
 .java-version
 .lein-*
 .lsp/.cache
+*/.lsp/.cache
+*/*/.lsp/.cache
 .lsp/sqlite.db
 .nrepl-history
 .nrepl-port
