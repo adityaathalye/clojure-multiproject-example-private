@@ -2,18 +2,20 @@
   (:refer-clojure :exclude [test])
   (:require [clojure.tools.build.api :as b]))
 
-(defn make-opts [{:keys [lib main version basis-opts target-dir class-dir src-dirs] :as opts
+(defn make-opts [{:keys [lib main version basis-opts target-dir class-dir src-dirs ns-compile] :as opts
                   :or {lib 'com.example/example
                        main 'com.example.core
+                       ns-compile '[com.example.core]
                        version "0.1.0-SNAPSHOT"
                        basis-opts {}
                        target-dir "target"
                        class-dir "target/classes"
-                       src-dirs ["grugstack/src" "grugstack/resources" "example_app/src" "tblm/mothra/src" "tblm/mothra/resources"]}}]
+                       src-dirs ["grugstack/src" "example_app/src"]}}]
   (assoc opts
          :uber-file (format "target/%s-%s.jar" lib version)
          :basis (b/create-basis basis-opts)
-         :ns-compile [main]
+         :main main
+         :ns-compile ns-compile
          :target-dir target-dir
          :class-dir class-dir
          :src-dirs src-dirs))
@@ -34,24 +36,34 @@
 
 (defn build
   ([] (build (make-opts {})))
-  ([{:keys [src-dirs class-dir target-dir main] :as opts
+  ([{:keys [src-dirs class-dir target-dir main ns-compile] :as opts
      :or {target-dir "target"
+          ns-compile '[com.example.core]
           class-dir "target/classes"
           src-dirs ["grugstack/src" "grugstack/resources" "tblm/mothra/src" "tblm/mothra/resources"]}}]
+   (println "\nBuilding uberjar with opts: " (dissoc opts :basis))
    (println "\nCleaning build target directory...")
    (b/delete {:path target-dir})
    (println "\nCopying source...")
-
-   (b/copy-dir {:src-dirs src-dirs :target-dir class-dir})
+   (b/copy-dir {:src-dirs src-dirs
+                :target-dir class-dir})
    (println (str "\nCompiling " main "..."))
    (b/compile-clj opts)
-   (println "\nBuilding JAR...")
-   (b/uber opts)
+   (let [uber-opts (select-keys opts
+                                [:class-dir :uber-file :basis :main]) ]
+     (println "\nBuilding JAR... with uber-opts:" (dissoc uber-opts :basis))
+     (b/uber uber-opts))
    opts))
+
+(defn build-example-app
+  [_]
+  (-> {:basis-opts {:aliases [:grugstack/grugstack :com.example]}}
+      make-opts
+      build))
 
 (comment
 
-  (-> {:basis-opts {:aliases [:grugstack/grugstack :all/dev :all/test]}}
+  (-> {:basis-opts {:aliases [:grugstack/grugstack :com.example]}}
       make-opts
       build)
   )
