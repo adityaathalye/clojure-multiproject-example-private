@@ -2,18 +2,29 @@
   (:refer-clojure :exclude [test])
   (:require [clojure.tools.build.api :as b]))
 
-(defn make-opts [{:keys [lib main version basis-opts target-dir class-dir src-dirs ns-compile] :as opts
-                  :or {lib 'com.example/example
-                       main 'com.example.core
-                       ns-compile '[com.example.core]
-                       version "0.1.0-SNAPSHOT"
-                       basis-opts {}
-                       target-dir "target"
-                       class-dir "target/classes"
-                       src-dirs ["grugstack/src" "example_app/src"]}}]
+(defn create-basis
+  [{:keys [aliases] :as _opts}]
+  (b/create-basis {:aliases (into [:grugstack/grugstack]
+                                  aliases)}))
+
+(comment
+  (create-basis {:aliases [:com.example]})
+  )
+
+(defn make-opts
+  [{:keys [lib main version aliases target-dir class-dir src-dirs ns-compile] :as opts
+    :or {lib 'com.example.core/example
+         main 'com.example.core
+         ns-compile '[com.example.core]
+         version "0.1.0-SNAPSHOT"
+         aliases []
+         target-dir "target"
+         class-dir "target/classes"
+         src-dirs ["grugstack/src" "example_app/src"]}}]
   (assoc opts
          :uber-file (format "target/%s-%s.jar" lib version)
-         :basis (b/create-basis basis-opts)
+         :basis (b/create-basis {:aliases (into [:grugstack/grugstack]
+                                                aliases)})
          :main main
          :ns-compile ns-compile
          :target-dir target-dir
@@ -21,39 +32,42 @@
          :src-dirs src-dirs))
 
 (defn test "Run all the tests."
-  ([] (test (make-opts {})))
-  ([{:keys [aliases]
-     :or {aliases [:grugstack/grugstack :all/test]}
-     :as opts}]
-   (let [basis (b/create-basis {:aliases aliases})
-         cmds (b/java-command
-               {:basis basis
-                :main 'clojure.main
-                :main-args ["-m" "cognitect.test-runner"]})
-         {:keys [exit]} (b/process cmds)]
-     (when-not (zero? exit) (throw (ex-info "Tests failed" {}))))
-   opts))
+  [{:keys [aliases]
+    :or {aliases [:grugstack/grugstack :all/test]}
+    :as opts}]
+  (let [basis (b/create-basis {:aliases aliases})
+        cmds (b/java-command
+              {:basis basis
+               :main 'clojure.main
+               :main-args ["-m" "cognitect.test-runner"]})
+        {:keys [exit]} (b/process cmds)]
+    (when-not (zero? exit) (throw (ex-info "Tests failed" {}))))
+  opts)
 
 (defn build
-  ([] (build (make-opts {})))
-  ([{:keys [src-dirs class-dir target-dir main ns-compile] :as opts
-     :or {target-dir "target"
-          ns-compile '[com.example.core]
-          class-dir "target/classes"
-          src-dirs ["grugstack/src" "grugstack/resources" "tblm/mothra/src" "tblm/mothra/resources"]}}]
-   (println "\nBuilding uberjar with opts: " (dissoc opts :basis))
-   (println "\nCleaning build target directory...")
-   (b/delete {:path target-dir})
-   (println "\nCopying source...")
-   (b/copy-dir {:src-dirs src-dirs
-                :target-dir class-dir})
-   (println (str "\nCompiling " main "..."))
-   (b/compile-clj opts)
-   (let [uber-opts (select-keys opts
-                                [:class-dir :uber-file :basis :main]) ]
-     (println "\nBuilding JAR... with uber-opts:" (dissoc uber-opts :basis))
-     (b/uber uber-opts))
-   opts))
+  [{:keys [src-dirs class-dir target-dir main ns-compile] :as opts
+    :or {target-dir "target"
+         ns-compile '[com.example.core]
+         class-dir "target/classes"
+         src-dirs ["grugstack/src" "grugstack/resources" "tblm/mothra/src" "tblm/mothra/resources"]}}]
+  (println "\nBuilding uberjar with opts: " (dissoc opts :basis))
+  (println "\nCleaning build target directory...")
+  (b/delete {:path target-dir})
+  (println "\nCopying source...")
+  (b/copy-dir {:src-dirs src-dirs
+               :target-dir class-dir})
+  (println (str "\nCompiling " main "..."))
+  (b/compile-clj opts)
+  (let [uber-opts (select-keys opts
+                               [:class-dir :uber-file :basis :main]) ]
+    (println "\nBuilding JAR... with uber-opts:" (dissoc uber-opts :basis))
+    (b/uber uber-opts))
+  opts)
+
+(defn foo
+  [context]
+  (println context)
+  context)
 
 (defn build-example-app
   [_]
