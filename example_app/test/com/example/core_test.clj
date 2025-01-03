@@ -1,6 +1,6 @@
-(ns com.bombaylitmag.mothra-test
+(ns com.example.core-test
   (:require [clojure.test :refer :all]
-            [com.bombaylitmag.mothra :refer :all]))
+            [com.example.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."

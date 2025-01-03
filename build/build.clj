@@ -1,6 +1,7 @@
 (ns build
   (:refer-clojure :exclude [test])
-  (:require [clojure.tools.build.api :as b])
+  (:require [clojure.tools.build.api :as b]
+            [clojure.string :as string])
   (:import [java.util Date TimeZone]
            [java.text SimpleDateFormat]))
 
@@ -16,8 +17,9 @@
   (b/git-process {:git-args "rev-parse --short HEAD"}))
 
 (defn create-app-basis
-  [{:keys [app-alias] :as _opts}]
-  (b/create-basis {:aliases [app-alias]}))
+  [{:keys [app-alias aliases] :as _opts}]
+  (println "CREATING BASIS:" {:aliases (conj aliases app-alias)})
+  (b/create-basis {:aliases (conj aliases app-alias)}))
 
 (defn basis->src-dirs
   [{:keys [libs argmap] :as _basis}]
@@ -66,14 +68,18 @@
 
 (defn test "Run all the tests."
   [opts]
+  (println "TESTING with input opts" opts)
   (let [opts (make-opts opts)
+        test-dirs (interleave (repeat "--dir")
+                              (get-in opts [:basis :argmap :exec-args :dirs]))
+        _ (println "TEST DIRS " test-dirs)
         cmds (b/java-command
               {:basis (:basis opts)
                :main 'clojure.main
-               :main-args ["-m" "cognitect.test-runner"]})
+               :main-args (into ["-m" "cognitect.test-runner"] test-dirs)})
         {:keys [exit]} (b/process cmds)]
-    (when-not (zero? exit) (throw (ex-info "Tests failed" {}))))
-  opts)
+    (when-not (zero? exit) (throw (ex-info "Tests failed" {})))
+    opts))
 
 (defn build
   [opts]
@@ -84,7 +90,7 @@
     (b/delete {:path target-dir})
     (println "\nCopying source...")
     (b/copy-dir {:src-dirs src-dirs
-                 :target-dir class-dir})
+                 :target-dir target-dir})
     (println (str "\nCompiling " main "..."))
     (b/compile-clj opts)
     (let [uber-opts (select-keys opts
@@ -95,20 +101,20 @@
 
 (defn ci "Run the CI pipeline of tests (and build the uberjar)."
   [opts]
-  (build opts)
-  #_(test opts)
+  #_(build opts)
+  (test opts)
   opts)
 
 (defn foo
   [{:keys [a b]
     :or {a 1 b 2}
     :as context}]
-  (println (assoc context :a a :b b)
-           (b/git-process {:git-args "rev-parse --short HEAD"}))
-
+  (println (assoc context :a a :b b))
   context)
 
 (comment
+
+
   (map (comp sort keys b/create-basis) [{:aliases [:foo]}
                                         {:aliases [:grugstack/grugstack]}
                                         {:aliases [:grugstack/grugstack
