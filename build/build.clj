@@ -1,43 +1,74 @@
 (ns build
   (:refer-clojure :exclude [test])
-  (:require [clojure.tools.build.api :as b]))
+  (:require [clojure.tools.build.api :as b])
+  (:import [java.util Date TimeZone]
+           [java.text SimpleDateFormat]))
 
-(defn create-basis
-  [{:keys [aliases] :as _opts}]
-  (b/create-basis {:aliases (into [:grugstack/grugstack]
-                                  aliases)}))
+(defn- timestamp
+  "Copied from yogthos/migratus."
+  []
+  (let [fmt (doto (SimpleDateFormat. "yyyyMMddHHmmss")
+              (.setTimeZone (TimeZone/getTimeZone "UTC")))]
+    (.format fmt (Date.))))
+
+(defn- git-short-hash
+  []
+  (b/git-process {:git-args "rev-parse --short HEAD"}))
+
+(defn create-app-basis
+  [{:keys [app-alias] :as _opts}]
+  (b/create-basis {:aliases [app-alias]}))
+
+(defn basis->src-dirs
+  [{:keys [libs argmap] :as _basis}]
+  (let [lib-names (-> argmap :extra-deps keys)]
+    (mapcat #(get-in libs [% :paths])
+            lib-names)))
+
+(defn uber-file-name
+  [target-dir app-name git-sha timestamp]
+  (format "%s/%s-%s-%s.jar"
+          target-dir
+          app-name
+          git-sha
+          timestamp))
 
 (comment
-  (create-basis {:aliases [:com.example]})
+  (mapv #(get-in (create-app-basis {:app-alias :com.bombaylitmag.mothra})
+            %)
+        [[:argmap]
+         [:libs 'tblm/mothra :paths]
+         [:libs 'grugstack/grugstack :paths]])
   )
 
 (defn make-opts
-  [{:keys [lib main version aliases target-dir class-dir src-dirs ns-compile] :as opts
-    :or {lib 'com.example.core/example
-         main 'com.example.core
-         ns-compile '[com.example.core]
-         version "0.1.0-SNAPSHOT"
-         aliases []
-         target-dir "target"
-         class-dir "target/classes"
-         src-dirs ["grugstack/src" "example_app/src"]}}]
-  (assoc opts
-         :uber-file (format "target/%s-%s.jar" lib version)
-         :basis (b/create-basis {:aliases (into [:grugstack/grugstack]
-                                                aliases)})
-         :main main
-         :ns-compile ns-compile
-         :target-dir target-dir
-         :class-dir class-dir
-         :src-dirs src-dirs))
+  [{:keys [app-alias ns-compile]
+    :or {app-alias :com.example.core}
+    :as opts}]
+  (let [basis (create-app-basis opts)
+        app-alias (name app-alias)
+        target-dir (format "target/%s" app-alias)
+        class-dir (format "%s/classes" target-dir)]
+    (assoc opts
+           :uber-file (uber-file-name target-dir
+                                      app-alias
+                                      (git-short-hash)
+                                      (timestamp))
+           :basis basis
+           :lib (symbol app-alias)
+           :main (symbol app-alias)
+           :ns-compile (mapv symbol
+                             (if (empty? ns-compile)
+                               [app-alias] ns-compile))
+           :target-dir target-dir
+           :class-dir class-dir
+           :src-dirs (basis->src-dirs basis))))
 
 (defn test "Run all the tests."
-  [{:keys [aliases]
-    :or {aliases [:grugstack/grugstack :all/test]}
-    :as opts}]
-  (let [basis (b/create-basis {:aliases aliases})
+  [opts]
+  (let [opts (make-opts opts)
         cmds (b/java-command
-              {:basis basis
+              {:basis (:basis opts)
                :main 'clojure.main
                :main-args ["-m" "cognitect.test-runner"]})
         {:keys [exit]} (b/process cmds)]
@@ -45,55 +76,37 @@
   opts)
 
 (defn build
-  [{:keys [src-dirs class-dir target-dir main ns-compile] :as opts
-    :or {target-dir "target"
-         ns-compile '[com.example.core]
-         class-dir "target/classes"
-         src-dirs ["grugstack/src" "grugstack/resources" "tblm/mothra/src" "tblm/mothra/resources"]}}]
-  (println "\nBuilding uberjar with opts: " (dissoc opts :basis))
-  (println "\nCleaning build target directory...")
-  (b/delete {:path target-dir})
-  (println "\nCopying source...")
-  (b/copy-dir {:src-dirs src-dirs
-               :target-dir class-dir})
-  (println (str "\nCompiling " main "..."))
-  (b/compile-clj opts)
-  (let [uber-opts (select-keys opts
-                               [:class-dir :uber-file :basis :main]) ]
-    (println "\nBuilding JAR... with uber-opts:" (dissoc uber-opts :basis))
-    (b/uber uber-opts))
+  [opts]
+  (let [{:keys [src-dirs class-dir target-dir main]
+         :as opts} (make-opts opts)]
+    (println "\nBuilding uberjar with opts: " (dissoc opts :basis))
+    (println "\nCleaning build target directory...")
+    (b/delete {:path target-dir})
+    (println "\nCopying source...")
+    (b/copy-dir {:src-dirs src-dirs
+                 :target-dir class-dir})
+    (println (str "\nCompiling " main "..."))
+    (b/compile-clj opts)
+    (let [uber-opts (select-keys opts
+                                 [:class-dir :uber-file :basis :main]) ]
+      (println "\nBuilding JAR... with uber-opts:" (dissoc uber-opts :basis))
+      (b/uber uber-opts))
+    opts))
+
+(defn ci "Run the CI pipeline of tests (and build the uberjar)."
+  [opts]
+  (build opts)
+  #_(test opts)
   opts)
 
 (defn foo
-  [context]
-  (println context)
+  [{:keys [a b]
+    :or {a 1 b 2}
+    :as context}]
+  (println (assoc context :a a :b b)
+           (b/git-process {:git-args "rev-parse --short HEAD"}))
+
   context)
-
-(defn build-example-app
-  [_]
-  (-> {:basis-opts {:aliases [:grugstack/grugstack :com.example]}}
-      make-opts
-      build))
-
-(comment
-
-  (-> {:basis-opts {:aliases [:grugstack/grugstack :com.example]}}
-      make-opts
-      build)
-  )
-
-(defn ci "Run the CI pipeline of tests (and build the uberjar)."
-  [{:keys [class-dir main] :as opts}]
-  (test opts)
-  (b/delete {:path "target"})
-  (let [opts (make-opts opts)]
-    (println "\nCopying source...")
-    (b/copy-dir {:src-dirs ["resources" "src"] :target-dir class-dir})
-    (println (str "\nCompiling " main "..."))
-    (b/compile-clj opts)
-    (println "\nBuilding JAR...")
-    (b/uber opts))
-  opts)
 
 (comment
   (map (comp sort keys b/create-basis) [{:aliases [:foo]}
