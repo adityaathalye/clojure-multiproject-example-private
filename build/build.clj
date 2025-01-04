@@ -68,7 +68,9 @@
 (defn test "Run all the tests."
   [opts]
   (println "TESTING with input opts" opts)
-  (let [opts (make-opts opts)
+  (let [opts (-> opts
+                 (assoc :aliases [:root/test])
+                 make-opts)
         test-dirs (interleave (repeat "--dir")
                               (get-in opts [:basis :argmap :exec-args :dirs]))
         _ (println "TEST DIRS " test-dirs)
@@ -100,7 +102,7 @@
 
 (defn ci "Run the CI pipeline of tests (and build the uberjar)."
   [opts]
-  (test (assoc opts :aliases [:root/test]))
+  (test opts)
   (uberjar opts)
   opts)
 

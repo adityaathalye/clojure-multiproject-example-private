@@ -1,12 +1,75 @@
 {:deps {org.clojure/clojure {:mvn/version "1.12.0"}}
  :mvn/local-repo ".m2-local"
- :aliases {;; ALL SETTINGS CONSOLIDATED AT THE ROOT OF THE MULTIPROJECT
+ ;; ALIASES USAGE
+ ;;
+ ;; DEV REPL:
+ ;;
+ ;;   # start a REPL at a random port
+ ;;   clj -M:root/all:root/dev:root/test:cider
+ ;;
+ ;;   # Start REPL at unix domain socket. Potentially use this to isolate project REPLs.
+ ;;   clj -M:root/all:root/dev:root/test:com.example.core:cider --socket "example_app.socket"
+ ;;
+ ;;   # nb. Also add .gitignore to root of each app so we can get LSP
+ ;;   # to recognise each app as a project directory, for autocomplete
+ ;;   # goodness and code navigation etc.
+ ;;
+ ;; TEST ALL APPS:
+ ;;   # trick is to declare all test target directories; viz. root of all apps
+ ;;   # and of grugstack. PLUS, inject grugstack as an extra-deps (via :root/all).
+ ;;   clj -X:root/all:root/test
+ ;;
+ ;; TEST ONLY GRUGSTACK:
+ ;;   # append grugstack alias to override test targets with only grug dirs
+ ;;   clj -X:root/all:root/test:grugstack
+ ;;
+ ;; TEST ONE APP:
+ ;;   # append app alias to override test targets with only that app's dirs
+ ;;   clj -X:root/all:root/test:com.example.core
+ ;;
+ ;; BUILD: CI ONE APP:
+ ;;
+ ;;   # BUILD default example project specified by alias under this path
+ ;;   # in our deps config -> [:root/build :extra-args :app-alias]
+ ;;   clj -T:root/build
+ ;;
+ ;;   # Then check it with...
+ ;;   java -jar target/com.example.core/com.example.core-*.jar
+ ;;
+ ;;   # BUILD project identified by :app-alias
+ ;;   clj -T:root/build :app-alias ':com.bombaylitmag.mothra'
+ ;;
+ ;; BUILD: UBERJAR ONE APP:
+ ;;
+ ;;   # BUILD UBERJAR for app identified by :app-alias
+ ;;   clj -T:root/build uberjar :app-alias ':com.bombaylitmag.mothra'
+ ;;
+ ;;   # Then check it with...
+ ;;   java -jar target/com.bombaylitmag.mothra/com.bombaylitmag.mothra-*.jar
+ ;;
+ ;; BUILD: TEST ONE APP:
+ ;;
+ ;;   # TEST app identified by :app-alias
+ ;;   clj -T:root/build test :app-alias ':com.bombaylitmag.mothra'
+ ;;
+ :aliases {;; GLOBAL OVERRIDES
+           :cider {;; clj -M:dev:cider
+                   :extra-deps {cider/cider-nrepl {:mvn/version "0.50.2"}
+                                refactor-nrepl/refactor-nrepl {:mvn/version "3.9.1"}}
+                   :main-opts ["-m" "nrepl.cmdline"
+                               "--middleware"
+                               "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"
+                               "--interactive"]}
+
+           ;; ALL SETTINGS CONSOLIDATED AT THE ROOT OF THE MULTIPROJECT
            :root/run-x {:exec-fn -main}
            :root/extra-paths ["src" "resources" "test"
                               :grugstack/extra-paths
                               :com.example.core/extra-paths
                               :com.bombaylitmag.mothra/extra-paths]
-           :root/all {:extra-paths [:root/extra-paths]}
+           :root/all {:extra-paths [:root/extra-paths]
+                      :extra-deps {grugstack/grugstack
+                                   {:local/root "grugstack"}}}
            :root/dev {:extra-paths ["dev"]
                       :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
                                    integrant/repl {:mvn/version "0.3.3"}
@@ -27,13 +90,17 @@
                         :exec-args {:app-alias :com.example.core}}
            ;; GRUGSTACK
            :grugstack/extra-paths ["grugstack/dev"
-                                   "grugstack/test"]
+                                   "grugstack/test"
+                                   "grugstack/src"
+                                   "grugstack/resources"]
            :grugstack {:extra-deps {grugstack/grugstack
                                     {:local/root "grugstack"}}
                        :exec-args {:dirs ["grugstack"]}}
            ;; EXAMPLE APP
            :com.example.core/extra-paths ["example_app/dev"
-                                          "example_app/test"]
+                                          "example_app/test"
+                                          "example_app/src"
+                                          "example_app/resources"]
            :com.example.core {:ns-default com.example.core
                               :main-opts ["-m" "com.example.core"]
                               :extra-deps {;; does not use grugstack/grugstack {:local/root "grugstack"}
@@ -41,7 +108,9 @@
                               :exec-args {:dirs ["example_app"]}}
            ;; BOMBAYLITMAG - MOTHRA
            :com.bombaylitmag.mothra/extra-paths ["tblm/mothra/dev"
-                                                 "tblm/mothra/test"]
+                                                 "tblm/mothra/test"
+                                                 "tblm/mothra/src"
+                                                 "tblm/mothra/resources"]
            :com.bombaylitmag.mothra {:ns-default com.bombaylitmag.mothra
                                      :main-opts ["-m" "com.bombaylitmag.mothra"]
                                      :extra-deps {;; explicitly uses grugstack
