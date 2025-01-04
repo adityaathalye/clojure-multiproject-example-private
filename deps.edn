@@ -1,29 +1,30 @@
 {:deps {org.clojure/clojure {:mvn/version "1.12.0"}}
  ;; :mvn/local-repo ".m2-local"
  :aliases {;; ALL DEPS SETTINGS CONSOLIDATED
-           :all/run-x {:exec-fn -main}
-           :all/all {:extra-paths ["src" "resources" "test"
-                                   :grugstack/extra-paths
-                                   :com.example.core/extra-paths
-                                   :com.bombaylitmag.mothra/extra-paths]}
-           :all/dev {:extra-paths ["dev"]
-                     :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
-                                  integrant/repl {:mvn/version "0.3.3"}
-                                  dev.weavejester/cljfmt {:mvn/version "0.13.0"}
-                                  djblue/portal {:mvn/version "0.58.2"}}}
-           :all/test {:extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
-                                   io.github.cognitect-labs/test-runner
-                                   {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
-                      :exec-fn cognitect.test-runner.api/test
-                      :exec-args {:patterns [".*-test$"]
-                                  :dirs ["test" "example_app" "tblm" "grugstack"]}}
-           :all/build {:extra-paths ["build"]
-                       :extra-deps {io.github.clojure/tools.build
-                                    {:mvn/version "0.10.5"}}
-                       :ns-default build
-                       :exec-fn build
-                       :exec-args {:app-alias :com.example.core
-                                   :aliases [:grugstack :all/test :all/all]}}
+           :root/run-x {:exec-fn -main}
+           :root/extra-paths ["src" "resources" "test"
+                              :grugstack/extra-paths
+                              :com.example.core/extra-paths
+                              :com.bombaylitmag.mothra/extra-paths]
+           :root/all {:extra-paths [:root/extra-paths]}
+           :root/dev {:extra-paths ["dev"]
+                      :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
+                                   integrant/repl {:mvn/version "0.3.3"}
+                                   dev.weavejester/cljfmt {:mvn/version "0.13.0"}
+                                   djblue/portal {:mvn/version "0.58.2"}}}
+           :root/test {:extra-paths [:root/extra-paths]
+                       :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                                    io.github.cognitect-labs/test-runner
+                                    {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+                       :exec-fn cognitect.test-runner.api/test
+                       :exec-args {:patterns [".*-test$"]
+                                   :dirs ["test" "example_app" "tblm" "grugstack"]}}
+           :root/build {:extra-paths ["build"]
+                        :extra-deps {io.github.clojure/tools.build
+                                     {:mvn/version "0.10.5"}}
+                        :ns-default build
+                        :exec-fn ci
+                        :exec-args {:app-alias :com.example.core}}
            ;; GRUGSTACK
            :grugstack/extra-paths ["grugstack/dev"
                                    "grugstack/test"]
@@ -35,7 +36,7 @@
                                           "example_app/test"]
            :com.example.core {:ns-default com.example.core
                               :main-opts ["-m" "com.example.core"]
-                              :extra-deps {grugstack/grugstack {:local/root "grugstack"}
+                              :extra-deps {;; does not use grugstack/grugstack {:local/root "grugstack"}
                                            example_app/example_app {:local/root "example_app"}}
                               :exec-args {:dirs ["example_app"]}}
            ;; BOMBAYLITMAG - MOTHRA
@@ -43,6 +44,7 @@
                                                  "tblm/mothra/test"]
            :com.bombaylitmag.mothra {:ns-default com.bombaylitmag.mothra
                                      :main-opts ["-m" "com.bombaylitmag.mothra"]
-                                     :extra-deps {grugstack/grugstack {:local/root "grugstack"}
+                                     :extra-deps {;; explicitly uses grugstack
+                                                  grugstack/grugstack {:local/root "grugstack"}
                                                   tblm/mothra {:local/root "tblm/mothra"}}
                                      :exec-args {:dirs ["tblm"]}}}}

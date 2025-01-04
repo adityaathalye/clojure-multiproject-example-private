@@ -1,7 +1,6 @@
 (ns build
   (:refer-clojure :exclude [test])
-  (:require [clojure.tools.build.api :as b]
-            [clojure.string :as string])
+  (:require [clojure.tools.build.api :as b])
   (:import [java.util Date TimeZone]
            [java.text SimpleDateFormat]))
 
@@ -81,7 +80,7 @@
     (when-not (zero? exit) (throw (ex-info "Tests failed" {})))
     opts))
 
-(defn build
+(defn uberjar
   [opts]
   (let [{:keys [src-dirs class-dir target-dir main]
          :as opts} (make-opts opts)]
@@ -101,8 +100,8 @@
 
 (defn ci "Run the CI pipeline of tests (and build the uberjar)."
   [opts]
-  #_(build opts)
-  (test opts)
+  (test (assoc opts :aliases [:root/test]))
+  (uberjar opts)
   opts)
 
 (defn foo
