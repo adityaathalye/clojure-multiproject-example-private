@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojure {:mvn/version "1.12.0"}}
- ;; :mvn/local-repo ".m2-local"
- :aliases {;; ALL DEPS SETTINGS CONSOLIDATED
+ :mvn/local-repo ".m2-local"
+ :aliases {;; ALL SETTINGS CONSOLIDATED AT THE ROOT OF THE MULTIPROJECT
            :root/run-x {:exec-fn -main}
            :root/extra-paths ["src" "resources" "test"
                               :grugstack/extra-paths

@@ -15,6 +15,7 @@
 */.lsp/.cache
 */*/.lsp/.cache
 .lsp/sqlite.db
+.m2-local
 .nrepl-history
 .nrepl-port
 .portal/vs-code.edn
