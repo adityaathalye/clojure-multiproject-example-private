@@ -37,20 +37,20 @@
  ;;   java -jar target/com.example.core/com.example.core-*.jar
  ;;
  ;;   # BUILD project identified by :app-alias
- ;;   clj -T:root/build :app-alias ':com.acmecorp.snafuapp'
+ ;;   clj -T:root/build :app-alias ':com.acmecorp.snafuapp.core'
  ;;
  ;; BUILD: UBERJAR ONE APP:
  ;;
  ;;   # BUILD UBERJAR for app identified by :app-alias
- ;;   clj -T:root/build uberjar :app-alias ':com.acmecorp.snafuapp'
+ ;;   clj -T:root/build uberjar :app-alias ':com.acmecorp.snafuapp.core'
  ;;
  ;;   # Then check it with...
- ;;   java -jar target/com.acmecorp.snafuapp/com.acmecorp.snafuapp-*.jar
+ ;;   java -jar target/com.acmecorp.snafuapp/com.acmecorp.snafuapp-core*.jar
  ;;
  ;; BUILD: TEST ONE APP:
  ;;
  ;;   # TEST app identified by :app-alias
- ;;   clj -T:root/build test :app-alias ':com.acmecorp.snafuapp'
+ ;;   clj -T:root/build test :app-alias ':com.acmecorp.snafuapp.core'
  ;;
  :aliases {;; GLOBAL OVERRIDES
            :cider {;; clj -M:dev:cider

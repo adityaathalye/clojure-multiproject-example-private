@@ -32,6 +32,7 @@
 /checkouts
 /classes
 /target
+/target/*
 /doc/*.pdf
 /doc/*.webm
 /data
