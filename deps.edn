@@ -81,7 +81,7 @@
                                     {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
                        :exec-fn cognitect.test-runner.api/test
                        :exec-args {:patterns [".*-test$"]
-                                   :dirs ["test" "example_app" "acmecorp" "grugstack"]}}
+                                   :dirs ["test" "grugstack" "projects"]}}
            :root/build {:extra-paths ["build"]
                         :extra-deps {io.github.clojure/tools.build
                                      {:mvn/version "0.10.5"}}
@@ -97,23 +97,23 @@
                                     {:local/root "grugstack"}}
                        :exec-args {:dirs ["grugstack"]}}
            ;; EXAMPLE APP
-           :com.example.core/extra-paths ["example_app/dev"
-                                          "example_app/test"
-                                          "example_app/src"
-                                          "example_app/resources"]
+           :com.example.core/extra-paths ["projects/example_app/dev"
+                                          "projects/example_app/test"
+                                          "projects/example_app/src"
+                                          "projects/example_app/resources"]
            :com.example.core {:ns-default com.example.core
                               :main-opts ["-m" "com.example.core"]
                               :extra-deps {;; does not use grugstack/grugstack {:local/root "grugstack"}
-                                           example_app/example_app {:local/root "example_app"}}
-                              :exec-args {:dirs ["example_app"]}}
+                                           projects/example_app {:local/root "projects/example_app"}}
+                              :exec-args {:dirs ["projects/example_app"]}}
            ;; BOMBAYLITMAG - SNAFUAPP
-           :com.acmecorp.snafuapp.core/extra-paths ["acmecorp/snafuapp/dev"
-                                                    "acmecorp/snafuapp/test"
-                                                    "acmecorp/snafuapp/src"
-                                                    "acmecorp/snafuapp/resources"]
+           :com.acmecorp.snafuapp.core/extra-paths ["projects/acmecorp/snafuapp/dev"
+                                                    "projects/acmecorp/snafuapp/test"
+                                                    "projects/acmecorp/snafuapp/src"
+                                                    "projects/acmecorp/snafuapp/resources"]
            :com.acmecorp.snafuapp.core {:ns-default com.acmecorp.snafuapp.core
                                         :main-opts ["-m" "com.acmecorp.snafuapp.core"]
                                         :extra-deps {;; explicitly uses grugstack
                                                      grugstack/grugstack {:local/root "grugstack"}
-                                                     acmecorp/snafuapp {:local/root "acmecorp/snafuapp"}}
-                                        :exec-args {:dirs ["acmecorp/snafuapp"]}}}}
+                                                     acmecorp/snafuapp {:local/root "projects/acmecorp/snafuapp"}}
+                                        :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}}}
