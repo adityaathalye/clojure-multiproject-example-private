@@ -1,7 +1,7 @@
 (ns com.acmecorp.snafuapp.core
-  (:require [system.core :as system]
+  (:require [com.adityaathalye.grugstack.system.core :as system]
             [clojure.tools.logging :as log]
-            [settings.core :as settings]
+            [com.adityaathalye.grugstack.settings.core :as settings]
             [com.acmecorp.snafuapp.handlers.core])
   (:gen-class))
 

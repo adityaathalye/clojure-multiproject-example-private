@@ -1,6 +1,6 @@
-(ns settings.core-test
+(ns com.adityaathalye.grugstack.settings.core-test
   (:require [clojure.test :refer :all]
-            [settings.core :refer :all]))
+            [com.adityaathalye.grugstack.settings.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."

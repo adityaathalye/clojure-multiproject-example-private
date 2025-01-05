@@ -1,4 +1,4 @@
-(ns settings.core
+(ns com.adityaathalye.grugstack.settings.core
   (:require
    [clojure.java.io :as io]
    [clojure.edn :as edn])
@@ -6,7 +6,7 @@
 
 (def default-settings-edn-file
   "TODO: Write a specification for this file. Optionally use aero to manage it."
-  "settings/defaults.edn")
+  "com/adityaathalye/grugstack/settings/defaults.edn")
 
 (defn read-settings!
   [settings-file]
@@ -22,7 +22,7 @@
      (make-settings default-settings
                     custom-settings))
     ([base-settings custom-settings]
-     {:post [(let [app-name (get-in % [:system.core/settings :app-name])]
+     {:post [(let [app-name (get-in % [:com.adityaathalye.grugstack.system.core/settings :app-name])]
                (and app-name
                     (not= app-name "OVERRIDE_ME_PLACEHOLDER")))]}
      (merge-with merge

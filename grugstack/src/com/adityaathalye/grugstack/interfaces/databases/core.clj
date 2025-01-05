@@ -1,4 +1,4 @@
-(ns interfaces.databases.core
+(ns com.adityaathalye.grugstack.interfaces.databases.core
   (:require [clojure.java.io :as io])
   (:import [java.util Date TimeZone]
            [java.text SimpleDateFormat])  )

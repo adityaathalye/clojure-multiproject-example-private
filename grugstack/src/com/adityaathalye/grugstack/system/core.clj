@@ -1,4 +1,4 @@
-(ns system.core
+(ns com.adityaathalye.grugstack.system.core
   "OR pull in a library of pre-built Component components under the
   'system' directory. ORrrrr vendor the code for visibility. e.g. If we
   add danielsz/system as a git submodule (the only, and the only sane
@@ -13,13 +13,13 @@
    ;; [com.acmecorp.snafuapp.db.migrations :as db-migrate]
    ;; [com.acmecorp.snafuapp.db.utils :as db-utils]
    [next.jdbc :as jdbc]
-   [settings.core :as settings])
+   [com.adityaathalye.grugstack.settings.core :as settings])
   (:gen-class))
 
 (def system-map
-  {::system {:db-primary (ig/ref [:system.sqlite/db :system.sqlite/primary])
-             :db-sessions (ig/ref [:system.sqlite/db :system.sqlite/sessions])
-             :environment (ig/ref :system.runtime/environment)}})
+  {::system {:db-primary (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db :com.adityaathalye.grugstack.system.sqlite/primary])
+             :db-sessions (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db :com.adityaathalye.grugstack.system.sqlite/sessions])
+             :environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)}})
 
 (defn module-name
   []
@@ -40,7 +40,7 @@
   "The way init works, the ::settings map never appears in the
    config. This is intentional. Settings can contain secrets that we
    don't want to have to remember to elide from the final configuration."
-  [{{:keys [system-modules]} :system.core/settings
+  [{{:keys [system-modules]} :com.adityaathalye.grugstack.system.core/settings
     :as settings}]
   (apply require (map symbol system-modules))
   (let [cfg (reduce (fn [system-configuration module-name]
@@ -50,7 +50,7 @@
                     {}
                     system-modules)]
     (-> cfg
-        (dissoc :system.core/settings)
+        (dissoc :com.adityaathalye.grugstack.system.core/settings)
         (merge system-map)
         ig/expand)))
 

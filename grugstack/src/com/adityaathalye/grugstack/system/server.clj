@@ -1,6 +1,6 @@
-(ns system.server
+(ns com.adityaathalye.grugstack.system.server
   (:require
-   [system.core :as system]
+   [com.adityaathalye.grugstack.system.core :as system]
    [integrant.core :as ig]
    [clojure.tools.logging :as log]
    [ring.adapter.jetty])
@@ -9,14 +9,14 @@
 (defmethod system/build-config-map :system.server
   [{{:keys [type port join?]
      :or {type :jetty port 13337 join? false}
-     :as adapter-settings} :system.server/jetty-adapter}]
+     :as adapter-settings} :com.adityaathalye.grugstack.system.server/jetty-adapter}]
   (log/info (format "Configured adapter %s at port %s with adapter-settings %s" type port adapter-settings))
   {::jetty-adapter (merge {:type type :port port :join? join?}
                           adapter-settings)
    ::server {:adapter-config (ig/ref ::jetty-adapter)
-             :system (ig/ref :system.core/system)
-             :reitit-route-tree (ig/ref :system.application/reitit-route-tree)
-             :handler (ig/ref :system.application/handler)}})
+             :system (ig/ref :com.adityaathalye.grugstack.system.core/system)
+             :reitit-route-tree (ig/ref :com.adityaathalye.grugstack.system.application/reitit-route-tree)
+             :handler (ig/ref :com.adityaathalye.grugstack.system.application/handler)}})
 
 (defmethod ig/init-key ::jetty-adapter
   [_ adapter-options]

@@ -1,4 +1,4 @@
-(ns interfaces.layouts.handlers
+(ns com.adityaathalye.grugstack.interfaces.layouts.handlers
   (:require [hiccup.page :as hp]
             [hiccup2.core :as hc]
             [ring.util.response :as res]))
@@ -10,10 +10,10 @@
   into the request map, by middleware. This way, we can declare context
   information at the routing table, and conveniently trace route - view
   relationship."
-  (comp :template :system.application/view))
+  (comp :template :com.adityaathalye.grugstack.system.application/view))
 
 (defmethod hydrate-view :default
-  [{{:keys [page-name content page-template]} :system.application/view
+  [{{:keys [page-name content page-template]} :com.adityaathalye.grugstack.system.application/view
     :as request}]
   (page-template
    {:page-name (or page-name (:uri request))

@@ -1,4 +1,4 @@
-(ns system.sqlite
+(ns com.adityaathalye.grugstack.system.sqlite
   "PER-DB PRAGMAS and settings include journal_mode,
    auto_vacuum. PER-CONNECTION PRAGMAS must be set fresh for each
    connection. To use CONNECTION POOLS, follow next.jdbc's advice. In all
@@ -11,14 +11,14 @@
   (:require
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
-   [system.core :as system]
+   [com.adityaathalye.grugstack.system.core :as system]
    [next.jdbc.connection :as jdbc-conn]
    [next.jdbc :as jdbc])
   (:import [com.zaxxer.hikari HikariDataSource])
   (:gen-class))
 
 (defmethod system/build-config-map :system.sqlite
-  [{{:keys [app-name runtime-environment-type]} :system.core/settings}]
+  [{{:keys [app-name runtime-environment-type]} :com.adityaathalye.grugstack.system.core/settings}]
   (log/info "Configuring module" (system/module-name))
   {;; Default pragmas
    [::defaults ::db-pragmas] {:journal_mode "WAL" ; supported by xerial JDBC driver

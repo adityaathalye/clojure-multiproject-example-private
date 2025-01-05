@@ -1,12 +1,12 @@
-(ns system.runtime
+(ns com.adityaathalye.grugstack.system.runtime
   (:require
     [integrant.core :as ig]
     [clojure.tools.logging :as log]
-    [system.core :as system])
+    [com.adityaathalye.grugstack.system.core :as system])
   (:gen-class))
 
 (defmethod system/build-config-map :system.runtime
-  [{{:keys [app-name runtime-environment-type]} :system.core/settings}]
+  [{{:keys [app-name runtime-environment-type]} :com.adityaathalye.grugstack.system.core/settings}]
   (log/info "Configuring module" (system/module-name))
   {::environment {:type runtime-environment-type
                   :app-name app-name

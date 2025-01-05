@@ -5,7 +5,7 @@
     :refer [html-fragment html5-page]]
    [com.acmecorp.snafuapp.middleware.core :as middleware-core]
    [reitit.ring]
-   [system.core :as system]))
+   [com.adityaathalye.grugstack.system.core :as system]))
 
 (def reitit-route-tree
   ["" {:handler html-fragment} ; return hypermedia fragment by default
