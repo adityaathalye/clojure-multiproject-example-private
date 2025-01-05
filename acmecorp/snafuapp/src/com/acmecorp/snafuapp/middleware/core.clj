@@ -1,1 +1,1 @@
-(ns com.bombaylitmag.middleware.core)
+(ns com.acmecorp.snafuapp.middleware.core)

@@ -35,10 +35,10 @@
           timestamp))
 
 (comment
-  (mapv #(get-in (create-app-basis {:app-alias :com.bombaylitmag.mothra})
+  (mapv #(get-in (create-app-basis {:app-alias :com.acmecorp.snafuapp.snafuapp})
             %)
         [[:argmap]
-         [:libs 'tblm/mothra :paths]
+         [:libs 'acmecorp/snafuapp :paths]
          [:libs 'grugstack/grugstack :paths]])
   )
 

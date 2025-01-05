@@ -1,6 +1,6 @@
-(ns com.bombaylitmag.handlers.common
-  (:require [com.bombaylitmag.db.migrations :as db-migrate]
-            [com.bombaylitmag.layouts.default :as default-layout]
+(ns com.acmecorp.snafuapp.handlers.common
+  (:require [com.acmecorp.snafuapp.db.migrations :as db-migrate]
+            [com.acmecorp.snafuapp.layouts.default :as default-layout]
             [hiccup.page :as hp]
             [hiccup2.core :as hc]
             [ring.util.response :as res]))

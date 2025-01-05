@@ -1,4 +1,4 @@
-# com.bombaylitmag/mothra
+# com.acmecorp.snafuapp/mothra
 
 ## The TBLM Process
 
@@ -63,7 +63,7 @@ It is useful to have an idea of how we're doing as a team and individually. But 
 
 ## Installation
 
-Download from https://github.com/bombaylitmag/mothra
+Download from https://github.com/acmecorp/snafuapp
 
 ## Usage
 
@@ -79,7 +79,7 @@ Run the project, overriding the name to be greeted:
     $ clojure -X:run-x :name '"Someone"'
     Hello, Someone!
 
-Run the project directly, via `:main-opts` (`-m com.bombaylitmag.mothra`):
+Run the project directly, via `:main-opts` (`-m com.acmecorp.snafuapp.mothra`):
 
     $ clojure -M:run-m
     Hello, World!
@@ -107,7 +107,7 @@ from `build.clj`.
 
 Run that uberjar:
 
-    $ java -jar target/com.bombaylitmag/mothra-0.1.0-SNAPSHOT.jar
+    $ java -jar target/com.acmecorp.snafuapp/mothra-0.1.0-SNAPSHOT.jar
 
 ## Options
 

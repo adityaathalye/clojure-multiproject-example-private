@@ -2,9 +2,9 @@
   (:refer-clojure :exclude [test])
   (:require [clojure.tools.build.api :as b]))
 
-(def lib 'com.bombaylitmag/mothra)
+(def lib 'com.acmecorp.snafuapp/snafuapp)
 (def version "0.1.0-SNAPSHOT")
-(def main 'com.bombaylitmag.mothra)
+(def main 'com.acmecorp.snafuapp.core)
 (def class-dir "target/classes")
 
 (defn test "Run all the tests." [opts]

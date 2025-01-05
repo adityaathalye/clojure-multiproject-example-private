@@ -6,12 +6,12 @@
   have all the recipes. https://danielsz.github.io/system/"
   (:require
    [clojure.tools.logging :as log]
-   ;; [com.bombaylitmag.handlers.core :as handlers-core]
+   ;; [com.acmecorp.snafuapp.handlers.core :as handlers-core]
    [integrant.core :as ig]
    [next.jdbc.connection :as jdbc-conn]
    [ring.adapter.jetty]
-   ;; [com.bombaylitmag.db.migrations :as db-migrate]
-   ;; [com.bombaylitmag.db.utils :as db-utils]
+   ;; [com.acmecorp.snafuapp.db.migrations :as db-migrate]
+   ;; [com.acmecorp.snafuapp.db.utils :as db-utils]
    [next.jdbc :as jdbc]
    [settings.core :as settings])
   (:gen-class))

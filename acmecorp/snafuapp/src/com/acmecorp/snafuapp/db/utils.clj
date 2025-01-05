@@ -1,4 +1,4 @@
-(ns com.bombaylitmag.db.utils
+(ns com.acmecorp.snafuapp.db.utils
   (:require [clojure.java.io :as io]
             [java-time.api :as jt])
   (:import [java.util Date TimeZone]
@@ -30,7 +30,7 @@
       (spit (io/file query-file) ""))))
 
 (comment
-  (init-query-file! "com/bombaylitmag/db"
+  (init-query-file! "com/acmecorp/snafuapp/db"
                     "foo")
 
   )

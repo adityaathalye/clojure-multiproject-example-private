@@ -10,7 +10,7 @@
 
 (ig-repl/set-prep!
  #(system/expand (settings/make-settings
-                  (settings/read-settings! "com/bombaylitmag/settings.edn"))))
+                  (settings/read-settings! "com/acmecorp/snafuapp/settings.edn"))))
 
 ;; ref: https://ryanmartin.me/articles/clojure-fly/
 (repl/set-refresh-dirs "src" "resources" "grugstack")

@@ -1,4 +1,4 @@
-(ns com.bombaylitmag.layouts.default
+(ns com.acmecorp.snafuapp.layouts.default
   (:require [hiccup.page :as hp]))
 
 (defn page-template
@@ -11,23 +11,23 @@
    [:head
     [:meta {:charset  "utf-8"}]
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-    [:title (format "%s - %s" "M-O-T-H-R-A" page-name)]
+    [:title (format "%s - %s" "SNAFU" page-name)]
     ;; static assets should be under 'resources/public'
     [:link {:rel "icon" :type "image/png" :href "/img/favicon.png"}]
     (hp/include-css "/css/style.css")]
    [:body
     [:div {:id "site-top" :class "stack center"}
      [:header {:id "site-header"}
-      [:h2 "Mothra / " [:small [:small page-name]]]
+      [:h2 "Snafuapp / " [:small [:small page-name]]]
       [:nav
        [:a {:href "/"
-            :title "The Home of M-O-T-H-R-A"}
+            :title "ACME Corp. - Planetary SNAFU Sniffer"}
         "Home"]]]
      [:main {:id "main"}
       content]
      [:footer {:id "site-footer" :class "stack"}
       [:hr]
-      [:p "The Bombay Literary Magazine"]]]]))
+      [:p "An ACME Corp. SNAFU"]]]]))
 
 (comment
   (hp/html5 (page-template {}))
