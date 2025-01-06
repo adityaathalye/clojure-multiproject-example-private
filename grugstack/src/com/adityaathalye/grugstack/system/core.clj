@@ -17,10 +17,6 @@
                                    :com.adityaathalye.grugstack.system.sqlite/sessions])
              :environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)}})
 
-(defn module-name
-  []
-  (keyword (ns-name *ns*)))
-
 #_(def build-config-map nil)
 (defmulti build-config-map
   ::module)
