@@ -6,8 +6,8 @@
   (:gen-class))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.runtime
-  [{{:keys [app-name runtime-environment-type]} :com.adityaathalye.grugstack.system.core/settings}]
-  (log/info "Configuring module" (system/module-name))
+  [{{:keys [app-name runtime-environment-type]} ::system/settings}]
+  (log/info "Configuring module" *ns*)
   {::environment {:type runtime-environment-type
                   :app-name app-name
                   :total-memory (.totalMemory (Runtime/getRuntime))

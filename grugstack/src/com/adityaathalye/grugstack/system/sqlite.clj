@@ -18,8 +18,9 @@
   (:gen-class))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.sqlite
-  [{{:keys [app-name runtime-environment-type]} :com.adityaathalye.grugstack.system.core/settings}]
-  (log/info "Configuring module" (system/module-name))
+  [{{:keys [app-name runtime-environment-type]}
+    :com.adityaathalye.grugstack.system.core/settings}]
+  ;; (log/info "Configuring module" *ns*)
   {;; Default pragmas
    [::defaults ::db-pragmas] {:journal_mode "WAL" ; supported by xerial JDBC driver
                               ;; INCREMENTAL = 2. Set manually. Not supported by xerial.

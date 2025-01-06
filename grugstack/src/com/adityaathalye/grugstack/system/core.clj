@@ -5,15 +5,16 @@
   way to use submodules) under our 'system' directory, then BOOM, we
   have all the recipes. https://danielsz.github.io/system/"
   (:require
-   [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [ring.adapter.jetty]
    [com.adityaathalye.grugstack.settings.core :as settings])
   (:gen-class))
 
 (def system-map
-  {::system {:db-primary (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db :com.adityaathalye.grugstack.system.sqlite/primary])
-             :db-sessions (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db :com.adityaathalye.grugstack.system.sqlite/sessions])
+  {::system {:db-primary (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db
+                                  :com.adityaathalye.grugstack.system.sqlite/primary])
+             :db-sessions (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db
+                                   :com.adityaathalye.grugstack.system.sqlite/sessions])
              :environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)}})
 
 (defn module-name
@@ -35,7 +36,7 @@
   "The way init works, the ::settings map never appears in the
    config. This is intentional. Settings can contain secrets that we
    don't want to have to remember to elide from the final configuration."
-  [{{:keys [system-modules]} :com.adityaathalye.grugstack.system.core/settings
+  [{{:keys [system-modules]} ::settings
     :as settings}]
   (apply require (map symbol system-modules))
   (let [cfg (reduce (fn [system-configuration module-name]
@@ -45,7 +46,7 @@
                     {}
                     system-modules)]
     (-> cfg
-        (dissoc :com.adityaathalye.grugstack.system.core/settings)
+        (dissoc ::settings)
         (merge system-map)
         ig/expand)))
 
@@ -59,36 +60,10 @@
     (ig/load-namespaces cfg)
     (-> cfg ig/init)))
 
+
 (comment
-  (let [settings (settings/make-settings
-                  (settings/read-settings! "com/example/settings.edn"))]
-    (init settings))
+
+  (init (settings/make-settings (settings/read-settings!
+                                 "com/example/settings.edn")))
+
   )
-
-(comment
-  ;; (defmethod ig/init-key ::handler
-  ;;   [_ handler-context]
-  ;;   (log/info (format "Running app handler in %s environment method with config %s"
-  ;;                     env system))
-  ;;   (with-open [cr (jdbc/get-connection (db-utils/reader db))
-  ;;               cw (jdbc/get-connection (db-utils/writer db))])
-  ;;   (handlers-core/app system))
-
-  (defmethod ig/init-key :adapter/jetty
-    [_ {:keys [handler] :as opts}]
-    (log/info "Starting Jetty server at port: " (:port opts))
-    (ring.adapter.jetty/run-jetty handler
-                                  (-> opts
-                                      (dissoc handler)
-                                      (assoc :join? false)))))
-
-(defmethod ig/halt-key! :adapter/jetty [_ server]
-  (log/info "Stopping Jetty server.")
-  (.stop server))
-
-(comment
-  (settings/make-settings {:app-name "testing-system"})
-
-  (user/reset)
-
-  (clojure.reflect/reflect (Runtime/getRuntime)))

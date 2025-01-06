@@ -5,8 +5,8 @@
             [clojure.repl.deps :as repl-deps :refer [add-lib]]
             [portal.api :as p]
             [clojure.reflect :as reflect]
-            [settings.core :as settings]
-            [system.core :as system]))
+            [com.adityaathalye.grugstack.settings.core :as settings]
+            [com.adityaathalye.grugstack.system.core :as system]))
 
 (ig-repl/set-prep!
  #(system/expand (settings/make-settings

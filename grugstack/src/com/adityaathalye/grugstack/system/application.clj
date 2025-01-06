@@ -30,15 +30,15 @@
    :compile (fn [{:keys [system]} _]
               (fn [handler]
                 (fn [req]
-                  (handler (assoc req :com.adityaathalye.grugstack.system.application/system system)))))})
+                  (handler (assoc req ::system system)))))})
 
 (def wrap-view-ctx
   {:name ::view-context
-   :compile (fn [{ctx :com.adityaathalye.grugstack.system.application/view} _]
+   :compile (fn [{ctx ::view} _]
               (fn [handler]
                 (fn [req]
                   (-> req
-                      (assoc :com.adityaathalye.grugstack.system.application/view ctx)
+                      (assoc ::view ctx)
                       handler))))})
 
 (defmulti reitit-ring-router
@@ -84,11 +84,11 @@
      (reitit-ring-default-routes))))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.application
-  [{:com.adityaathalye.grugstack.system.application/keys [router handler reitit-route-tree]
-    :or {router 'com.adityaathalye.grugstack.system.application/reitit-ring-router
-         handler 'com.adityaathalye.grugstack.system.application/reitit-ring-handler
-         reitit-route-tree 'com.adityaathalye.grugstack.system.application/reitit-route-tree-hello-world-app}}]
-  {::reitit-ring {:data {:system (ig/ref :com.adityaathalye.grugstack.system.core/system)
+  [{::keys [router handler reitit-route-tree]
+    :or {router `reitit-ring-router
+         handler `reitit-ring-handler
+         reitit-route-tree `reitit-route-tree-hello-world-app}}]
+  {::reitit-ring {:data {:system (ig/ref ::system/system)
                          :coercions reitit.coercion.malli/coercion
                          :middleware [wrap-view-ctx
                                       rrm-params/parameters-middleware
@@ -119,9 +119,10 @@
 
 (comment
   (ig/init
-   (merge (system/build-config-map {:com.adityaathalye.grugstack.system.core/module
-                                    :com.adityaathalye.grugstack.system.application})
-          {:com.adityaathalye.grugstack.system.core/system {:environment {:type :dev}}}))
+   (merge (system/build-config-map {::system/module
+                                    ::application})
+          {::system/system {:environment {:type :dev}}}))
+
   (do
     (require 'reitit.core)
 
@@ -132,7 +133,7 @@
                     (fn [req]
                       (println data)
                       (handler (merge req
-                                      (select-keys data [:com.adityaathalye.grugstack.system.application/view]))))))})
+                                      (select-keys data [::view]))))))})
 
     (def ring-router
       (reitit.ring/router
@@ -141,8 +142,8 @@
         ["/api/orders" {:middleware [wrap-application-view]
                         :get (fn [request]
                                {:status 200
-                                :body (:com.adityaathalye.grugstack.system.application/view request "Not Found.")})
-                        :com.adityaathalye.grugstack.system.application/view "bar"
+                                :body (::view request "Not Found.")})
+                        ::view "bar"
                         :name ::foo}]]))
 
     (def app-try
