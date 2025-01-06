@@ -1,21 +1,35 @@
 # Clojure Multi-Project Example Layout and Tool Use
 
-Warning: This project is very alpha-quality. It is made available with
-a works-for-me-on-my-machine (and for my purposes) quality guarantee.
+Warning: This whole thing is very alpha-quality in my head.
+- It is made available with a quality guarantee of: "It works on my
+  machine, and I *think* I can make it work for my purposes.".
+- Mainly because I'd like to nerd snipe someone out there... I've
+  ruminated more than enough, in isolation.
+- So, please use the project issues to (constructively) rip apart the
+  design! No idea is sacred. (Wait, but, what if I have no idea...).
 
 # Design notes
 
-Here's my thinking. If you want to give me design notes, please do, in
-the project issues!
+Here's my thinking.
 
 The attempt is to...
-- Share a common "system" (which I'm calling grugstack).
-- Across multiple apps; whether standalone (like example_app), or for
-  a customer (e.g. acmecorp/snafuapp). (Want to build a Micro-SaaS?
-  For outside customers? Inside customers? Private tool? Hire me!)
-- Using only out-of-the-box tooling (not out-of-the-box thinking).
+- Share a common abstract "system" (which I'm calling `grugstack`),
+- across multiple apps, within a single repo (this multi-project example),
+- managed with only out-of-the-box tooling (not out-of-the-box thinking).
+- Whether the apps are standalone (like `projects/example_app`), or must
+  be neatly isolated for my customers (e.g. `projects/acmecorp/snafuapp`).
+  - BTW, *do you want to build a niche
+    [Micro-SaaS](https://duckduckgo.com/?t=ffab&q=%22micro-saas%22&ia=web)?*
+    For outside customers? Inside customers? As your own private
+    force-multiplier?
+    *[Hire me!](mailto:hello@evalapply.org?subject="Build us a Micro SaaS using boringly stable technology.")*
 
-Conceptually, it is aspirational.
+Conceptually, it is aspirational...
+- I was obsessing about web stacks, but now I suspect this bag of
+  tricks will generalise to apps made for any arbitrary Clojure /
+  ClojureScript runtime; whether web app, desktop, mobile, cli, data
+  science etc... And the code for all these diverse apps can be
+  managed within a single source repo.
 - The *Way* is not Purely Functional /or/ Purely Object Oriented, but
   a "Best of Both" approach, all the way down to code layout.
   - A system of parts (functions) that glue together *à la carte*,
@@ -24,7 +38,7 @@ Conceptually, it is aspirational.
   - into any number of runnable apps (open-ended polymorphism) (see
     [credits](#credits)).
 
-Ideally, I want to get away with:
+Ideally, I want to get away with...
 - **the simplest possible project tree layout**, even if it makes code
   and command-line invocations repetitive or verbose. My grug brain
   can easily plod along long paths, as long as they are made painfully
@@ -45,7 +59,9 @@ By design, I want to run tools / start REPLs etc. ***only at the root
 of the multi-project***, and use explicit command-line options to
 broaden or narrow scope of the command / REPL to the part(s) of the
 multi-project that I want to target. This helps me keep a simple
-mental model of managing the whole or the part of the multi-project.
+mental model of managing the whole or the part of the multi-project,
+that can show up legibly in my shell's history / project logs /
+docs etc. (hopefully the [Usage](#usage) examples will make this clear).
 
 # Requirements
 
@@ -91,13 +107,13 @@ conventional single-repo single-app style projects.
 This is my preferred tactic to trivially share or isolate REPLs from
 each other, in a multi-project context. The trick is to name socket
 paths along the project directory paths structure. For example:
-- To imply a REPL is shared across the whole multi-project, create the
-  UNIX domain socket at the root of the multi-project repo.
+- To imply a REPL is *shared across the whole multi-project*, create
+  the UNIX domain socket at the root of the multi-project repo.
 
   ```shell
-  clj -M:root/all:root/dev:root/test:cider --socket "repl.socket" # shared REPL for
+  clj -M:root/all:root/dev:root/test:cider --socket "repl.socket"
   ```
-- To imply a REPL is specific to a project, create the socket at the
+- To imply a REPL is *specific to a project*, create the socket at the
   root of the project directory.
 
   ```shell
@@ -106,17 +122,28 @@ paths along the project directory paths structure. For example:
   clj -M:root/all:root/dev:root/test:com.acmecorp.snafuapp:cider --socket "projects/acmecorp/snafuapp/repl.socket"
   ```
 
-How this lets us trivially isolate REPL-specific state when we need to:
+This trick helps us conveniently access / share code from anywhere in
+the multi-project, while also being able to isolate project-specific
+REPL state when needed.
 
-I've created a multi-project-level  code to bootstrap utilities into the
-`user` namespace can sit at the project root `dev/user.clj`, in
-our case. It contains handy REPL utilities to manipulate `system`
-state (start / stop / restart), as well as spin up dev tools like
-portal. If we have three REPLs running at independent sockets, the
-state is isolated automatically, by construction.  At the same
-time, we can access any permutation of the multi-project codebase
-in each REPL context. Thus, inert code is shared, but live state
-is isolated.
+We can automatically bootstrap custom code and settings into the
+default `user` namespace. This is Clojure's standard bootstrap
+behaviour.
+
+Every REPL is an isolated process. So, all bootstrapped context is
+isolated by construction.
+
+I've placed my "bootstrap" code in `dev/user.clj`, right under the
+root of the multi-project. It contains handy REPL utilities to
+manipulate `system` state (start / stop / restart), as well as spin up
+developer tools like *portal*.
+
+Now, if we have three REPLs running at independent sockets, then the
+state is isolated automatically, by construction.
+
+/At the same time/, we can access any permutation of the multi-project
+codebase in each REPL context. Thus, inert code is shared, but live
+state is isolated.
 
 ## TEST running
 
