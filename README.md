@@ -1,21 +1,51 @@
 # Clojure Multi-Project Example Layout and Tool Use
 
-Very alpha-level thinking. Works-for-me-on-my-machine quality
-guarantee.
+Warning: This project is very alpha-quality. It is made available with
+a works-for-me-on-my-machine (and for my purposes) quality guarantee.
 
-The attempt is...
-- to share a common "system" (which I'm calling grugstack)
-- across multiple apps; whether standalone (like example_app), or for
-  a customer (e.g. acmecorp/snafuapp).
-- using only out-of-the-box tooling (not out-of-the-box thinking)
+# Design notes
 
-It is aspirational --- ideally, I want to get away with:
-- the simplest possible project tree layout, even if it is a bit
-  repetitive or verbose. My grug brain can easily plod along long
-  paths, as long as they are made painfully obvious.
-- the fewest possible bespoke ideas or terms of art,
-- no build custom tooling. I just want to appropriate the public
-  contracts provided by deps.edn, tools.build, and Clojure CLI.
+Here's my thinking. If you want to give me design notes, please do, in
+the project issues!
+
+The attempt is to...
+- Share a common "system" (which I'm calling grugstack).
+- Across multiple apps; whether standalone (like example_app), or for
+  a customer (e.g. acmecorp/snafuapp). (Want to build a Micro-SaaS?
+  For outside customers? Inside customers? Private tool? Hire me!)
+- Using only out-of-the-box tooling (not out-of-the-box thinking).
+
+Conceptually, it is aspirational.
+- The *Way* is not Purely Functional /or/ Purely Object Oriented, but
+  a "Best of Both" approach, all the way down to code layout.
+  - A system of parts (functions) that glue together *à la carte*,
+  - via carefully constructed (namespaced, structured) plain Clojure
+    data,
+  - into any number of runnable apps (open-ended polymorphism) (see
+    [credits](#credits)).
+
+Ideally, I want to get away with:
+- **the simplest possible project tree layout**, even if it makes code
+  and command-line invocations repetitive or verbose. My grug brain
+  can easily plod along long paths, as long as they are made painfully
+  obvious.
+- **the fewest possible bespoke abstractions or terms of art**,
+  because making a Domain Specific Language is easy, but keeping it
+  sensible is hard.
+- **no custom build tooling.** I just want to appropriate the raw
+  machinery and public contracts provided by deps.edn, tools.build,
+  and Clojure CLI. I've chosen to used in the usual way, via a single
+  multi-project-level `build.clj`. Stare at the `build.clj` file and
+  the multi-project-level `deps.edn` file side-by-side to see the
+  main trick I've used... I figured out a permutation of (alias names
+  x grouping of paths x grouping of dependencies x grouping of args
+  that must get overridden to narrow context to the last alias).
+
+By design, I want to run tools / start REPLs etc. ***only at the root
+of the multi-project***, and use explicit command-line options to
+broaden or narrow scope of the command / REPL to the part(s) of the
+multi-project that I want to target. This helps me keep a simple
+mental model of managing the whole or the part of the multi-project.
 
 # Requirements
 
@@ -42,16 +72,52 @@ tasks.
 
 ## REPL Development
 
-- Start a REPL at a random port
+I prefer to start REPLs at the shell, and connect to them via my code
+editor. This lets me independently kill/restart/manage the REPL
+process and the Editor process. Sometimes one of them can go into a
+bad state. Live REPL state tends to collect orphan objects the longer
+they are live. Sometimes I want to force-invalidate some editor
+state, which may require killing and cold-starting it. etc...
+
+### Start a REPL at a random port.
+
+This is the most common way to start a REPL. This works just fine for
+conventional single-repo single-app style projects.
   ```shell
   clj -M:root/all:root/dev:root/test:cider
   ```
+### Start REPL at specific UNIX domain socket.
 
-- Start REPL at unix domain socket. Potentially use this to isolate project REPLs.
+This is my preferred tactic to trivially share or isolate REPLs from
+each other, in a multi-project context. The trick is to name socket
+paths along the project directory paths structure. For example:
+- To imply a REPL is shared across the whole multi-project, create the
+  UNIX domain socket at the root of the multi-project repo.
+
   ```shell
-  clj -M:root/all:root/dev:root/test:com.example.core:cider --socket
-  "example_app.socket"
+  clj -M:root/all:root/dev:root/test:cider --socket "repl.socket" # shared REPL for
   ```
+- To imply a REPL is specific to a project, create the socket at the
+  root of the project directory.
+
+  ```shell
+  clj -M:root/all:root/dev:root/test:com.example.core:cider --socket "projects/example_app/repl.socket"
+
+  clj -M:root/all:root/dev:root/test:com.acmecorp.snafuapp:cider --socket "projects/acmecorp/snafuapp/repl.socket"
+  ```
+
+How this lets us trivially isolate REPL-specific state when we need to:
+
+I've created a multi-project-level  code to bootstrap utilities into the
+`user` namespace can sit at the project root `dev/user.clj`, in
+our case. It contains handy REPL utilities to manipulate `system`
+state (start / stop / restart), as well as spin up dev tools like
+portal. If we have three REPLs running at independent sockets, the
+state is isolated automatically, by construction.  At the same
+time, we can access any permutation of the multi-project codebase
+in each REPL context. Thus, inert code is shared, but live state
+is isolated.
+
 ## TEST running
 
 - Test all apps:
@@ -136,6 +202,23 @@ Lots.
 As of now, I am in discussions-only mode... Ping me in the Clojurians
 Slack or Zulip or [this thread](https://groups.google.com/g/clojure/c/uroL-ftfrqY)
 in the official mailing list.
+
+# Credits
+
+I've consumed way too much web-stack buildin' prior art from across
+the Clojure ecosystem. Clojure core, community librarians, builders,
+architects, teachers, book authors: the whole lot of you; thank you!
+
+Special mentions to authors making projects and explanations for use
+by solo/indie web app builders: biff, duct, zodiac, caveman.
+
+Last but not least, special mention to `polylith`, which lit a key
+light bulb in my head... The "Expression Problem" applies to code
+layout and application architecture too! Not Functions v/s Objects;
+but Functions *and* Objects.
+
+That said, I'm not sure I've "got it" yet. So to take it back to the
+top, please [send design notes my way](#design-notes)!
 
 # License & Copyright
 
