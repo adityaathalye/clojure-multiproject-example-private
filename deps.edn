@@ -18,7 +18,8 @@
            :root/all {:extra-paths ["src" "resources"
                                     :root/extra-paths]
                       :extra-deps {grugstack/grugstack
-                                   {:local/root "grugstack"}}}
+                                   {:local/root "grugstack"}
+                                   clj-http/clj-http {:mvn/version "3.12.3"}}}
            :root/dev {:extra-paths ["dev"]
                       :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
                                    integrant/repl {:mvn/version "0.3.3"}
@@ -73,7 +74,7 @@
                                           "projects/usermanager-first-principles/test"
                                           "projects/usermanager-first-principles/src"
                                           "projects/usermanager-first-principles/resources"]
-           :usermanager.main {:ns-default usermanager.app
+           :usermanager.main {:ns-default usermanager.main
                               :main-opts ["-m" "usermanager.main"]
                               :extra-deps
                               {grugstack/grugstack
