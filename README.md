@@ -226,6 +226,50 @@ Run only "test" part of the CI sequence, for apps identified by
 clj -T:root/build test :app-alias ':com.acmecorp.snafuapp.core'
 ```
 
+## NEW PROJECT addition
+
+We can just use the
+[deps-new](https://github.com/seancorfield/deps-new) tool, from the
+root directory of the multi-project repo.
+
+Example:
+
+```shell
+clojure -Tnew app :name com/acmecorp/fubarapp/core :target-dir projects/acmecorp/fubarapp
+```
+
+This produces the usual "application" project layout. We don't really
+*need* some of the files under the newly-created project, but it
+doesn't hurt us to let them be (README, LICENSE, build.clj, .gitignore
+etc.). Tomorrow, if I need to pull the app out of the multi-project,
+into a standalone project (say, to hand over to someone), then staying
+compatible with the standard app layout should make extraction easier.
+
+```text
+$ tree -a projects/acmecorp/fubarapp/
+projects/acmecorp/fubarapp/
+├── build.clj
+├── CHANGELOG.md
+├── deps.edn
+├── doc
+│   └── intro.md
+├── .gitignore
+├── LICENSE
+├── README.md
+├── resources
+│   └── .keep
+├── src
+│   └── com
+│       └── acmecorp
+│           └── fubarapp
+│               └── core.clj
+└── test
+    └── com
+        └── acmecorp
+            └── fubarapp
+                └── core_test.clj
+```
+
 # TODO
 
 Lots.
