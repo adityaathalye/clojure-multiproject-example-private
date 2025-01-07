@@ -69,7 +69,7 @@
   [opts]
   (println "TESTING with input opts" opts)
   (let [opts (-> opts
-                 (assoc :aliases [:root/test])
+                 (assoc :aliases [:root/all :root/test])
                  make-opts)
         test-dirs (interleave (repeat "--dir")
                               (get-in opts [:basis :argmap :exec-args :dirs]))

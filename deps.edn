@@ -11,11 +11,12 @@
 
            ;; ALL SETTINGS CONSOLIDATED AT THE ROOT OF THE MULTIPROJECT
            :root/run-x {:exec-fn -main}
-           :root/extra-paths ["src" "resources" "test"
-                              :grugstack/extra-paths
+           :root/extra-paths [:grugstack/extra-paths
                               :com.example.core/extra-paths
-                              :com.acmecorp.snafuapp.core/extra-paths]
-           :root/all {:extra-paths [:root/extra-paths]
+                              :com.acmecorp.snafuapp.core/extra-paths
+                              :usermanager-example.app/extra-paths]
+           :root/all {:extra-paths ["src" "resources"
+                                    :root/extra-paths]
                       :extra-deps {grugstack/grugstack
                                    {:local/root "grugstack"}}}
            :root/dev {:extra-paths ["dev"]
@@ -23,7 +24,7 @@
                                    integrant/repl {:mvn/version "0.3.3"}
                                    dev.weavejester/cljfmt {:mvn/version "0.13.0"}
                                    djblue/portal {:mvn/version "0.58.2"}}}
-           :root/test {:extra-paths [:root/extra-paths]
+           :root/test {:extra-paths ["test"]
                        :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
                                     io.github.cognitect-labs/test-runner
                                     {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
