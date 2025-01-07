@@ -2,7 +2,7 @@
   (:require [integrant.repl :as ig-repl]
             [integrant.repl.state :as ig-state]
             [clojure.tools.namespace.repl :as repl]
-            [clojure.repl.deps :as repl-deps :refer [add-lib]]
+            [clojure.repl.deps :as repl-deps :refer [add-lib sync-deps]]
             [portal.api :as p]
             [clojure.reflect :as reflect]
             [com.adityaathalye.grugstack.settings.core :as settings]
@@ -20,7 +20,13 @@
 (def reset ig-repl/reset)
 (def reset-all ig-repl/reset-all)
 
+
 (comment
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; SYSTEM helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
   (go)
   (halt)
   (reset)
@@ -28,6 +34,9 @@
 
   ig-state/system
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; VISUAL tools
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (do ;; open fresh portal
     (do ;; clean stop
       (p/clear)
@@ -36,6 +45,7 @@
       (p/open)
       (add-tap #'p/submit)))
 
+  ;; Visualise
   (tap> ig-state/system)
 
   (p/clear)
@@ -44,5 +54,14 @@
 
   (tap> (.getConnection (get-in ig-state/system [:database/primary :reader])))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; DEPS helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  ;; Try a lib
   (add-lib 'sym {:mvn/version "x.y.z"})
-  )
+
+  ;; Update libs from deps.edn
+  (sync-deps)
+
+  ) ;; END OF COMMENT BLOCK
