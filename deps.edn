@@ -14,7 +14,7 @@
            :root/extra-paths [:grugstack/extra-paths
                               :com.example.core/extra-paths
                               :com.acmecorp.snafuapp.core/extra-paths
-                              :usermanager-example.app/extra-paths]
+                              :usermanager.main/extra-paths]
            :root/all {:extra-paths ["src" "resources"
                                     :root/extra-paths]
                       :extra-deps {grugstack/grugstack
@@ -68,4 +68,16 @@
                                         :extra-deps {;; explicitly uses grugstack
                                                      grugstack/grugstack {:local/root "grugstack"}
                                                      acmecorp/snafuapp {:local/root "projects/acmecorp/snafuapp"}}
-                                        :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}}}
+                                        :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}
+           :usermanager.main/extra-paths ["projects/usermanager-first-principles/dev"
+                                          "projects/usermanager-first-principles/test"
+                                          "projects/usermanager-first-principles/src"
+                                          "projects/usermanager-first-principles/resources"]
+           :usermanager.main {:ns-default usermanager.app
+                              :main-opts ["-m" "usermanager.main"]
+                              :extra-deps
+                              {grugstack/grugstack
+                               {:local/root "grugstack"}
+                               projects/example_app
+                               {:local/root "projects/usermanager-first-principles"}}
+                              :exec-args {:dirs ["projects/usermanager-first-principles"]}}}}
