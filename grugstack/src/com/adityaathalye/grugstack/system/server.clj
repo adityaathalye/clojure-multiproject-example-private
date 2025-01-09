@@ -17,7 +17,10 @@
    ::server {:adapter-config (ig/ref ::jetty-adapter)
              :system (ig/ref ::system/system)
              :reitit-route-tree (ig/ref ::system-application/reitit-route-tree)
-             :handler (ig/ref ::system-application/handler)}})
+             :handler (ig/ref ::system-application/handler)}
+   ::simple-server {:adapter-config (ig/ref ::jetty-adapter)
+                    :system (ig/ref ::system/system)
+                    :handler (ig/ref ::system-application/handler)}})
 
 (defmethod ig/init-key ::jetty-adapter
   [_ adapter-options]
@@ -36,11 +39,34 @@
                        (assoc :join? false)))
            nil)))
 
+(defmethod ig/init-key ::simple-server
+  [_ {:keys [adapter-config system handler] :as server}]
+  (assoc server
+         :object
+         (case (:type adapter-config)
+           :jetty (ring.adapter.jetty/run-jetty
+                   (handler system)
+                   (-> adapter-config
+                       (dissoc :handler)
+                       (assoc :join? false)))
+           nil)))
+
 (defmethod ig/resolve-key ::server
   [_ {:keys [object]}]
   object)
 
 (defmethod ig/halt-key! ::server
+  [_ {:keys [object] :as _server}]
+  (log/info "Stopping Jetty server.")
+  (when object
+    (.stop object))
+  nil)
+
+(defmethod ig/resolve-key ::simple-server
+  [_ {:keys [object]}]
+  object)
+
+(defmethod ig/halt-key! ::simple-server
   [_ {:keys [object] :as _server}]
   (log/info "Stopping Jetty server.")
   (when object

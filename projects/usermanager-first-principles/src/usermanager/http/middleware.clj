@@ -32,6 +32,16 @@
                              (system/get-db db-key))]
        (handler request)))))
 
+(defn wrap-db-grugstack
+  ([handler]
+   (wrap-db handler ::system/db))
+  ([handler db-key]
+   (fn [request]
+     (let [request (assoc-in request
+                             [:application/component :database]
+                             (system/get-db db-key))]
+       (handler request)))))
+
 (defn wrap-route-id-params
   [handler uri-static-prefix-with-slash]
   (fn [request]

@@ -115,7 +115,10 @@
 
 (defmethod ig/init-key ::handler
   [_ handler]
-  (resolve handler))
+  (println "handler symbol" handler "resolved as " (resolve handler))
+  (if (symbol? handler)
+    (resolve handler)
+    handler))
 
 (comment
   (ig/init

@@ -7,6 +7,7 @@
   (:require
    [integrant.core :as ig]
    [ring.adapter.jetty]
+   [clojure.tools.logging :as log]
    [com.adityaathalye.grugstack.settings.core :as settings])
   (:gen-class))
 
@@ -20,6 +21,15 @@
 #_(def build-config-map nil)
 (defmulti build-config-map
   ::module)
+
+(defmethod build-config-map :default
+  [config-map]
+  (let [module (::module config-map)]
+    (log/warn (format "No config. for module %s. Only its namespace will be loaded, to support symbol resolution." (symbol module)))
+    (require (symbol module))
+    #_(try
+         (catch java.io.FileNotFoundException _)
+         (finally (log/warn "Could not find file for namespace of module: " module)))))
 
 (defmethod ig/init-key ::settings
   [_ {:keys [app-name runtime-environment-type]
@@ -53,6 +63,7 @@
 (defn init
   [settings]
   (let [cfg (expand settings)]
+    (log/info "loading namespaces" (keys cfg))
     (ig/load-namespaces cfg)
     (-> cfg ig/init)))
 

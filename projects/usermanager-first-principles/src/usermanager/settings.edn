@@ -1,0 +1,17 @@
+{:com.adityaathalye.grugstack.system.core/settings
+ {:app-name "usermanager"
+  :runtime-environment-type "dev",
+  :system-modules [:usermanager.main
+                   :com.adityaathalye.grugstack.system.runtime
+                   :com.adityaathalye.grugstack.system.sqlite
+                   :com.adityaathalye.grugstack.system.application
+                   :com.adityaathalye.grugstack.system.server]}
+ ;; Use default grug SQLite DB config for Primary DB, with custom migrator
+ [:com.adityaathalye.grugstack.system.sqlite/db
+  :com.adityaathalye.grugstack.system.sqlite/primary] {:migrator 'usermanager.model.user-manager/populate}
+ ;; Use custom application handler
+ :com.adityaathalye.grugstack.system.application/handler 'usermanager.main/app
+ ;; Use default grug jetty with custom jetty port
+ :com.adityaathalye.grugstack.system.server/jetty-adapter {:port 13339}
+ ;; Use default grug ring server
+ :com.adityaathalye.grugstack.system.server/simple-server {}}

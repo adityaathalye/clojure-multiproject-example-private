@@ -41,11 +41,15 @@
    [::db ::primary] {:dbtype "sqlite"
                      :dbname (format "%s_%s_primary.sqlite3" app-name runtime-environment-type)
                      :db-pragmas (ig/ref [::defaults ::db-pragmas])
-                     :cp-pragmas (ig/ref [::defaults ::connection-pool])}
+                     :migrator `identity
+                     :cp-pragmas (ig/ref [::defaults ::connection-pool])
+                     :datasource nil}
    [::db ::sessions] {:dbtype "sqlite"
                       :dbname (format "%s_%s_sessions.sqlite3" app-name runtime-environment-type)
+                      :migrator `identity
                       :db-pragmas (ig/ref [::defaults ::db-pragmas])
-                      :cp-pragmas (ig/ref [::defaults ::connection-pool])}})
+                      :cp-pragmas (ig/ref [::defaults ::connection-pool])
+                      :datasource nil}})
 
 (defmethod ig/init-key ::defaults
   [_ ctx]
@@ -71,7 +75,7 @@
              pragmas))))
 
 (defn set-up-sqlite!
-  [{:keys [dbname dbtype db-pragmas cp-pragmas]
+  [{:keys [dbname dbtype migrator db-pragmas cp-pragmas]
     :as db-spec}]
   (let [db-spec (-> db-spec
                     (merge db-pragmas cp-pragmas)
@@ -100,18 +104,28 @@
       ;; https://www.sqlite.org/pragma.html#pragma_optimize
       (jdbc/execute! writer-conn ["PRAGMA optimize"]))
     (log/info "Initialized pooled datasource PRAGMAS:" (get-pragma-settings datasource))
+
+    ;; Run migrator
+    (log/info "Running migrator provided:" migrator)
+    (with-open [writer-conn (jdbc/get-connection datasource)]
+      ((resolve migrator) writer-conn))
+
+    ;; Return live datasource object
+    (log/info "Finished migration. Setting up system.")
     {:dbname dbname
      :dbtype dbtype
-     :ds datasource}))
+     :datasource datasource}))
 
 (defmethod ig/init-key ::db
   [_ db-spec]
-  (log/info (str "Setting up DB: " (:dbname db-spec)))
-  (set-up-sqlite! db-spec))
+  (when db-spec
+    (log/info (str "Setting up DB: " (:dbname db-spec)))
+    (set-up-sqlite! db-spec)))
 
 (defmethod ig/halt-key! ::db
   [_ {:keys [datasource]}]
   ;; HikariCP pool is closeable
-  (when datasource (.close datasource))
+  (when datasource
+    (.close datasource))
   (log/info "Discarding DB:" datasource)
   nil)

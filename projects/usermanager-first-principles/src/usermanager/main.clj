@@ -29,12 +29,20 @@
    [usermanager.router.core :as router]
    [usermanager.system.core :as system]
    [usermanager.http.middleware :as middleware]
-   [usermanager.model.user-manager :as model]))
+   [usermanager.model.user-manager :as model]
+   [com.adityaathalye.grugstack.system.core :as grug-system]
+   [com.adityaathalye.grugstack.settings.core :as grug-settings]))
 
 (def middleware-stack
   [keyword-params-middleware/wrap-keyword-params
    params-middleware/wrap-params
    middleware/wrap-db
+   middleware/wrap-render-page])
+
+(def middleware-grug-stack
+  [keyword-params-middleware/wrap-keyword-params
+   params-middleware/wrap-params
+   middleware/wrap-db-grugstack
    middleware/wrap-render-page])
 
 (defn wrap-router
@@ -50,7 +58,17 @@
                         middleware-key)]
        (app-handler request)))))
 
-(defn -main
+(defn wrap-router-2
+  [router]
+  (fn [request]
+    (let [request-handler (router request)
+          composed-middleware (apply comp (reverse middleware-grug-stack))
+          app-handler (composed-middleware request-handler)]
+      (app-handler request))))
+
+(def app (wrap-router-2 router/router))
+
+(defn -main-legacy
   [& [port]]
   (let [server-config (system/get-config ::system/server)
         port (or port
@@ -69,7 +87,22 @@
                         (assoc server-config :port port))
     (system/start-server! (wrap-router router/router))))
 
+(defn -main
+  [& args]
+  (let [env (or (first args) :dev)
+        env (keyword env)
+        settings (grug-settings/make-settings
+                  ;; Make /our/ settings the "default", so we can explicitly
+                  ;; configure the precise subset of the Grug system we need.
+                  (grug-settings/read-settings! "usermanager/settings.edn")
+                  {})
+        system (grug-system/init settings)]
+    (println "Invoking -main with environment" env)
+    system))
+
 (comment
+  (-main)
+
   (let [dev-db-file "dev/usermanager_dev_db.sqlite3"]
     (require 'clojure.java.io)
     (system/stop-server!)

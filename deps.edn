@@ -74,7 +74,7 @@
                                           "projects/usermanager-first-principles/test"
                                           "projects/usermanager-first-principles/src"
                                           "projects/usermanager-first-principles/resources"]
-           :usermanager.main {:ns-default usermanager.app
+           :usermanager.main {:ns-default usermanager.main
                               :main-opts ["-m" "usermanager.main"]
                               :extra-deps
                               {grugstack/grugstack
