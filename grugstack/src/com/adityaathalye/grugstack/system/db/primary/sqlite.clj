@@ -3,21 +3,22 @@
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [com.adityaathalye.grugstack.system.core :as system]
-   [com.adityaathalye.grugstack.system.db.sqlite :as sqlite])
+   [com.adityaathalye.grugstack.system.db.sqlite :as sqlite]
+   [next.jdbc :as jdbc])
   (:gen-class))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.db.primary.sqlite
   [{{:keys [app-name runtime-environment-type]}
     :com.adityaathalye.grugstack.system.core/settings
     {:keys [dbname migrator db-spec]
-     :or {migrator identity
-          db-spec (ig/ref ::sqlite/db-spec)}}
+     :or {migrator identity}}
     :com.adityaathalye.grugstack.system.db.primary.sqlite/db}]
   ;; (log/info "Configuring module" *ns*)
   {::db {:dbname (or dbname
                      (format "%s_%s_primary.sqlite3" app-name runtime-environment-type))
-         :db-spec db-spec
+         :db-spec (or db-spec (ig/ref ::sqlite/db-spec))
          :migrator migrator
+         :runtime-environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)
          :datasource nil}})
 
 (defmethod ig/init-key ::db

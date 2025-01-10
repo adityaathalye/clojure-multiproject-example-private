@@ -88,7 +88,7 @@
     :or {router `reitit-ring-router
          handler `reitit-ring-handler
          reitit-route-tree `reitit-route-tree-hello-world-app}}]
-  {::reitit-ring {:data {:system (ig/ref ::system/system)
+  {::reitit-ring {:data {:system (ig/ref ::system/components)
                          :coercions reitit.coercion.malli/coercion
                          :middleware [wrap-view-ctx
                                       rrm-params/parameters-middleware
@@ -121,7 +121,7 @@
   (ig/init
    (merge (system/build-config-map {::system/module
                                     ::application})
-          {::system/system {:environment {:type :dev}}}))
+          {::system/components {:environment {:type :dev}}}))
 
   (do
     (require 'reitit.core)

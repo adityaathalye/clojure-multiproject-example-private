@@ -32,6 +32,19 @@
                              (system/get-db db-key))]
        (handler request)))))
 
+(defn wrap-grug-db
+  [handler {{:keys [database]} :application/component
+            :as system-components}]
+  (fn [request]
+    (let [system-components (assoc-in system-components
+                                      [:application/component :database]
+                                      ;; Database must be a callable object, for compatibility
+                                      ;; with Sean's impl. that we ported over into
+                                      ;; usermanager-first-principles
+                                      (constantly database))
+          request (merge request system-components)]
+      (handler request))))
+
 (defn wrap-route-id-params
   [handler uri-static-prefix-with-slash]
   (fn [request]

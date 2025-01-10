@@ -15,7 +15,7 @@
   {::jetty-adapter (merge {:type type :port port :join? join?}
                           adapter-settings)
    ::server {:adapter-config (ig/ref ::jetty-adapter)
-             :system (ig/ref ::system/system)
+             :system (ig/ref ::system/components)
              :reitit-route-tree (ig/ref ::system-application/reitit-route-tree)
              :handler (ig/ref ::system-application/handler)}})
 
