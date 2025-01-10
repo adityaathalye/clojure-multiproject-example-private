@@ -11,10 +11,8 @@
   (:gen-class))
 
 (def system-map
-  {::system {:db-primary (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db
-                                  :com.adityaathalye.grugstack.system.sqlite/primary])
-             :db-sessions (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db
-                                   :com.adityaathalye.grugstack.system.sqlite/sessions])
+  {::system {:db-primary (ig/ref :com.adityaathalye.grugstack.system.db.primary.sqlite/db)
+             :db-sessions (ig/ref :com.adityaathalye.grugstack.system.db.sessions.sqlite/db)
              :environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)}})
 
 #_(def build-config-map nil)
