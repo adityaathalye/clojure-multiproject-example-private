@@ -31,7 +31,10 @@
    [usermanager.http.middleware :as middleware]
    [usermanager.model.user-manager :as model]
    [com.adityaathalye.grugstack.system.core :as grug-system]
-   [com.adityaathalye.grugstack.settings.core :as grug-settings]))
+   [com.adityaathalye.grugstack.settings.core :as grug-settings]
+   [integrant.core :as ig]))
+
+(def ^:private dev-repl-system nil)
 
 (def middleware-stack
   [keyword-params-middleware/wrap-keyword-params
@@ -42,7 +45,6 @@
 (def middleware-grug-stack
   [keyword-params-middleware/wrap-keyword-params
    params-middleware/wrap-params
-   middleware/wrap-db-grugstack
    middleware/wrap-render-page])
 
 (defn wrap-router
@@ -67,6 +69,14 @@
       (app-handler request))))
 
 (def app (wrap-router-2 router/router))
+
+(defmethod grug-system/build-config-map :usermanager.main
+  [_]
+  {::ring-handler #'app})
+
+(defmethod ig/init-key ::ring-handler
+  [_ handler]
+  handler)
 
 (defn -main-legacy
   [& [port]]
@@ -97,11 +107,17 @@
                   (grug-settings/read-settings! "usermanager/settings.edn")
                   {})
         system (grug-system/init settings)]
+    (when (= :dev env)
+      (println (format "Setting dev-repl-system var for %s env use." env))
+      (alter-var-root #'dev-repl-system (constantly system)))
     (println "Invoking -main with environment" env)
     system))
 
 (comment
   (-main)
+
+  (require 'integrant.core)
+  (integrant.core/halt! dev-repl-system)
 
   (let [dev-db-file "dev/usermanager_dev_db.sqlite3"]
     (require 'clojure.java.io)

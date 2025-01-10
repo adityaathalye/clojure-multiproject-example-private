@@ -26,7 +26,8 @@
   [config-map]
   (let [module (::module config-map)]
     (log/warn (format "No config. for module %s. Only its namespace will be loaded, to support symbol resolution." (symbol module)))
-    (require (symbol module))
+    config-map
+    ;; (require (symbol module))
     #_(try
          (catch java.io.FileNotFoundException _)
          (finally (log/warn "Could not find file for namespace of module: " module)))))
@@ -42,19 +43,21 @@
   "The way init works, the ::settings map never appears in the
    config. This is intentional. Settings can contain secrets that we
    don't want to have to remember to elide from the final configuration."
-  [{{:keys [system-modules]} ::settings
-    :as settings}]
-  (apply require (map symbol system-modules))
-  (let [cfg (reduce (fn [system-configuration module-name]
-                      (merge system-configuration
-                             (build-config-map (assoc settings
-                                                      ::module module-name))))
-                    {}
-                    system-modules)]
-    (-> cfg
-        (dissoc ::settings)
-        (merge system-map)
-        ig/expand)))
+  ([settings] (expand settings system-map))
+  ([{{:keys [system-modules]} ::settings
+     :as settings}
+    system-map]
+   (apply require (map symbol system-modules))
+   (let [cfg (reduce (fn [system-configuration module-name]
+                       (merge system-configuration
+                              (build-config-map (assoc settings
+                                                       ::module module-name))))
+                     {}
+                     system-modules)]
+     (-> cfg
+         (dissoc ::settings)
+         (merge system-map)
+         ig/expand))))
 
 (defmethod ig/init-key ::system
   [_ system-map]

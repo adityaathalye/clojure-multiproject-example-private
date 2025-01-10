@@ -1,7 +1,8 @@
 (ns usermanager.system.core
   (:require
    [ring.adapter.jetty :as adapter]
-   [next.jdbc :as jdbc]))
+   [next.jdbc :as jdbc]
+   [integrant.core :as ig]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Abstract system utilities
