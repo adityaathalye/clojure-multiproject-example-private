@@ -29,13 +29,25 @@
    [usermanager.router.core :as router]
    [usermanager.system.core :as system]
    [usermanager.http.middleware :as middleware]
-   [usermanager.model.user-manager :as model]))
+   [usermanager.model.user-manager :as model]
+   [com.adityaathalye.grugstack.settings.core :as grug-settings]
+   [com.adityaathalye.grugstack.system.core :as grug-system]))
+
+(defonce dev-system nil)
 
 (def middleware-stack
   [keyword-params-middleware/wrap-keyword-params
    params-middleware/wrap-params
    middleware/wrap-db
    middleware/wrap-render-page])
+
+(defn wrap-grug-middleware
+  [handler system-components]
+  (-> handler
+      middleware/wrap-render-page
+      params-middleware/wrap-params
+      keyword-params-middleware/wrap-keyword-params
+      (middleware/wrap-grug-db system-components)))
 
 (defn wrap-router
   ([router]
@@ -48,6 +60,15 @@
            app-handler (system/wrap-middleware
                         request-handler
                         middleware-key)]
+       (app-handler request)))))
+
+(defn ->grug-app-handler
+  ([system-components]
+   (->grug-app-handler system-components router/router))
+  ([system-components router]
+   (fn [request]
+     (let [handler (router request)
+           app-handler (wrap-grug-middleware handler system-components)]
        (app-handler request)))))
 
 (defn -main
@@ -69,7 +90,32 @@
                         (assoc server-config :port port))
     (system/start-server! (wrap-router router/router))))
 
+(defn -main-grug
+  [& args]
+  (let [settings-file (or (first args)
+                          "usermanager/settings.edn")
+        settings (grug-settings/make-settings
+                  (grug-settings/read-settings! settings-file)
+                  {})
+        system (grug-system/init settings)]
+    (alter-var-root #'dev-system (constantly system))
+    (-> system
+        :com.adityaathalye.grugstack.system.server-simple/server
+        :object)))
+
 (comment
+
+  (grug-system/expand
+   (grug-settings/make-settings
+    (grug-settings/read-settings! "usermanager/settings.edn")
+    {}))
+
+  (-main-grug)
+
+  (.stop (-> dev-system
+             :com.adityaathalye.grugstack.system.server-simple/server
+             :object))
+
   (let [dev-db-file "dev/usermanager_dev_db.sqlite3"]
     (require 'clojure.java.io)
     (system/stop-server!)

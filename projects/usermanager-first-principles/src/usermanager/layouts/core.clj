@@ -4,7 +4,7 @@
 
 (defn css
   []
-  (slurp "resources/public/assets/css/style.css"))
+  (slurp "projects/usermanager-first-principles/resources/public/assets/css/style.css"))
 
 (defn page-head
   [page-name]

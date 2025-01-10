@@ -18,30 +18,24 @@
   (:gen-class))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.db.sqlite
-  [{{:keys [available-processors]}
-    :com.adityaathalye.grugstack.system.core/settings
-    {:keys [dataSourceProperties]
+  [{{:keys [dataSourceProperties]
      :or {dataSourceProperties {:limit_worker_threads 4
                                 :busy_timeout 5000 ; ms, set per connection
                                 :foreign_keys "ON" ; ON = boolean 1, set per connection
                                 :cache_size -50000 ; KiB = 50 MiB, set per connection
                                 ;; NORMAL = 1, set per connection
                                 :synchronous "NORMAL"}}}
-    :com.adityaathalye.grugstack.system.db.sqlite/db-spec}]
-  ;; (log/info "Configuring module" *ns*)
-  (let [max-concurrency (max available-processors
-                             (:limit_worker_threads
-                              dataSourceProperties))]
-    {;; Default pragmas
-     ::db-spec {:dbtype "sqlite"
-                :journal_mode "WAL" ; supported by xerial JDBC driver
-                ;; INCREMENTAL = 2. Set manually. Not supported by xerial.
-                :auto_vacuum "INCREMENTAL"
-                :connectionTestQuery "PRAGMA journal_mode;" ; used by HikariCP
-                :preferredTestQuery "PRAGMA journal_mode;" ; used by C3P0
-                ;; :maximumPoolSize max-concurrency ; not supported by Xerial
-                :dataSourceProperties (merge dataSourceProperties
-                                             {:limit_worker_threads max-concurrency})}}))
+    :com.adityaathalye.grugstack.system.db.sqlite/db-spec
+    :as ctx}]
+  {;; Default pragmas
+   ::db-spec {:dbtype "sqlite"
+              :journal_mode "WAL" ; supported by xerial JDBC driver
+              ;; INCREMENTAL = 2. Set manually. Not supported by xerial.
+              :auto_vacuum "INCREMENTAL"
+              :connectionTestQuery "PRAGMA journal_mode;" ; used by HikariCP
+              :preferredTestQuery "PRAGMA journal_mode;" ; used by C3P0
+              ;; :maximumPoolSize max-concurrency ; not supported by Xerial
+              :dataSourceProperties dataSourceProperties}})
 
 (defmethod ig/init-key ::db-spec
   [_ ctx]

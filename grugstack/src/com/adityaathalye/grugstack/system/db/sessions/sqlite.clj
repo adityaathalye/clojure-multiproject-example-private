@@ -3,7 +3,8 @@
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [com.adityaathalye.grugstack.system.core :as system]
-   [com.adityaathalye.grugstack.system.db.sqlite :as sqlite])
+   [com.adityaathalye.grugstack.system.db.sqlite :as sqlite]
+   [next.jdbc :as jdbc])
   (:gen-class))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.db.sessions.sqlite

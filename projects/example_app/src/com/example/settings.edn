@@ -1,6 +1,8 @@
 {:com.adityaathalye.grugstack.system.core/settings {:app-name "example_app"
                                                     :runtime-environment-type "dev"
-                                                    :system-modules [:com.adityaathalye.grugstack.system.sqlite
+                                                    :system-modules [:com.adityaathalye.grugstack.system.db.sqlite
+                                                                     :com.adityaathalye.grugstack.system.db.primary.sqlite
+                                                                     :com.adityaathalye.grugstack.system.db.sessions.sqlite
                                                                      :com.adityaathalye.grugstack.system.runtime
                                                                      :com.adityaathalye.grugstack.system.application
                                                                      :com.adityaathalye.grugstack.system.server]}}
