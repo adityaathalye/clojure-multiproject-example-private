@@ -45,8 +45,8 @@
   [handler system-components]
   (-> handler
       middleware/wrap-render-page
-      params-middleware/wrap-params
       keyword-params-middleware/wrap-keyword-params
+      params-middleware/wrap-params
       (middleware/wrap-grug-db system-components)))
 
 (defn wrap-router
