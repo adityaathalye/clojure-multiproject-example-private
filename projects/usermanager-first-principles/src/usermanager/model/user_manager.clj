@@ -8,7 +8,8 @@
   Compare with seancorfield/usermanager-example
   https://github.com/seancorfield/usermanager-example/blob/develop/src/usermanager/model/user_manager.clj"
   (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]))
+            [next.jdbc.sql :as sql]
+            [next.jdbc.connection :as connection]))
 
 (def ^:private departments
   "List of departments."
@@ -58,6 +59,11 @@ create table addressbook (
       (catch Exception e
         (println "Exception:" (ex-message e))
         (println "Looks like the database is already setup?")))))
+
+(defn populate-grug
+  "Grug-brained wrapper for the O.G. 'populate' migrator."
+  [connection]
+  (populate (constantly connection)))
 
 ;; data model access functions
 

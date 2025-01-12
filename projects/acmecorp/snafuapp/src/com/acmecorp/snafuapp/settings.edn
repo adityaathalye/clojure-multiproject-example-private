@@ -8,4 +8,8 @@
                                                      :com.adityaathalye.grugstack.system.application
                                                      :com.adityaathalye.grugstack.system.server
                                                      :com.acmecorp.snafuapp.handlers.core]}
- :com.adityaathalye.grugstack.system.server/jetty-adapter {:port 13338}}
+ :com.adityaathalye.grugstack.system.server/jetty-adapter {:port 13338}
+
+ ;; no-op migration
+ :com.adityaathalye.grugstack.system.db.primary.sqlite/db
+ {:migrator identity}}

@@ -5,4 +5,7 @@
                                                                      :com.adityaathalye.grugstack.system.db.sessions.sqlite
                                                                      :com.adityaathalye.grugstack.system.runtime
                                                                      :com.adityaathalye.grugstack.system.application
-                                                                     :com.adityaathalye.grugstack.system.server]}}
+                                                                     :com.adityaathalye.grugstack.system.server]}
+ ;; no-op migration
+ :com.adityaathalye.grugstack.system.db.primary.sqlite/db
+ {:migrator identity}}
