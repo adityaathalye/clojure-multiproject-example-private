@@ -8,7 +8,7 @@
                    ]}
 
  :com.adityaathalye.grugstack.system.db.primary.sqlite/db
- {:migrator usermanager.model.user-manager/populate}
+ {:migrator usermanager.model.user-manager/populate-grug}
 
  :com.adityaathalye.grugstack.system.core/components
  {:application/component
