@@ -2,7 +2,7 @@
 this_helper_script_path="$(realpath ${0})"
 multiproject_root="$(dirname $(dirname this_helper_script_path))"
 
-declare -a multiproject_commands=( $(sed -E -ne "s/(^run_+.*)\(\)\s+\{/\1/p" "${this_helper_script_path}" | sort ) )
+declare -a multiproject_commands=( $(sed -E -ne "s/(^run_+.*)\(\)\s+\{/\1/p" "${this_helper_script_path}" ) )
 
 # Copy all project deps to clipboard
 # clj -X:deps aliases |
@@ -20,41 +20,47 @@ declare -a multiproject_app_aliases=(
 )
 
 main() {
-    local command_chosen=""
+    local command_chosen=${1:-""}
+    local alias_chosen=${2:-""}
 
-    cat <<EOF
+    # Choose command to run
+    if [ -z $command_chosen ]
+    then
+        cat <<EOF
 ==================================================
 CHOOSE COMMAND to run.
   (Next menu: Choose project scope by alias.)
   (Hit 'x' to cancel.)
 ==================================================
 EOF
-    select mul_cmd in ${multiproject_commands[*]}
-    do
-        case ${REPLY} in
-            "x" )
-                echo "Cancelling..."
-                command_chosen=""
-                break
-                ;;
-            [[:digit:]]|[[:digit:]][[:digit:]] )
-                if ! [ -z $mul_cmd ]
-                then echo "Command chosen: ${mul_cmd}."
-                     command_chosen="${mul_cmd}"
-                     break
-                else
+        select mul_cmd in ${multiproject_commands[*]}
+        do
+            case ${REPLY} in
+                "x" )
+                    echo "Cancelling..."
+                    command_chosen=""
+                    break
+                    ;;
+                [[:digit:]]|[[:digit:]][[:digit:]] )
+                    if ! [ -z $mul_cmd ]
+                    then echo "Command chosen: ${mul_cmd}."
+                         command_chosen="${mul_cmd}"
+                         break
+                    else
+                        echo "Invalid choice."
+                        command_chosen=""
+                    fi
+                    ;;
+                * )
                     echo "Invalid choice."
                     command_chosen=""
-                fi
-                ;;
-            * )
-                echo "Invalid choice."
-                command_chosen=""
-                ;;
-        esac
-    done
+                    ;;
+            esac
+        done
+    fi
 
-    if ! [ -z $command_chosen ]
+    # Choose alias IFF a command is chosen
+    if ! [ -z $command_chosen ] && [ -z $alias_chosen ]
     then
         cat <<EOF
 ==================================================
@@ -72,8 +78,8 @@ EOF
                     ;;
                 [[:digit:]]|[[:digit:]][[:digit:]] )
                     if ! [ -z $app_alias ]
-                    then echo "Running command: ${command_chosen} for alias: ${app_alias}"
-                         ${command_chosen} "${app_alias}"
+                    then echo "Alias chosen: ${app_alias}"
+                         alias_chosen=${app_alias}
                          break
                     else
                         echo "Invalid choice."
@@ -85,6 +91,12 @@ EOF
             esac
         done
     fi
+
+    if ! [ -z $command_chosen ] && ! [ -z $alias_chosen ]
+    then
+        echo "Running with options: '${0} \"${command_chosen}\" \"${alias_chosen}\"'"
+        ${command_chosen} "${alias_chosen}"
+    fi
 }
 
 run_REPL() {
@@ -94,10 +106,10 @@ run_REPL() {
 
     if [ ${app_alias} = "ACROSS_FULL_MULTIPROJECT" ]
     then echo "Starting socket REPL. Alias: ${app_alias}. Opts: ${clj_opts_full_multiproject}"
-         clj ${clj_opts_full_multiproject} "--socket" "multiproject.generic.repl"
+         clj ${clj_opts_full_multiproject} "--socket" "generic.multiproject.repl.socket"
 
     else echo "Starting socket REPL. Alias: ${app_alias}. Opts: ${clj_opts_for_alias}"
-         clj ${clj_opts_for_alias} "--socket" "${app_alias}.repl"
+         clj ${clj_opts_for_alias} "--socket" "${app_alias}.repl.socket"
     fi
 }
 
@@ -110,18 +122,6 @@ run_TESTS() {
     then echo "Running tests. Alias: ${app_alias}. Opts: ${clj_opts_full_multiproject}"
          clj ${clj_opts_full_multiproject}
     else echo "Running tests. Alias: ${app_alias}. Opts: ${clj_opts_for_alias}"
-         clj ${clj_opts_for_alias}
-    fi
-}
-
-run_CI() {
-    local app_alias=${1:?"Fail. App alias is mandatory."}
-    local clj_opts_full_multiproject="TODO"
-    local clj_opts_for_alias="-T:root/build ci :app-alias :${app_alias}"
-
-    if [ ${app_alias} = "ACROSS_FULL_MULTIPROJECT" ]
-    then echo "NOT yet implemented."
-    else echo "Running full CI job. Alias: ${app_alias}. Opts: ${clj_opts_for_alias}"
          clj ${clj_opts_for_alias}
     fi
 }
@@ -149,8 +149,20 @@ EOF
     fi
 }
 
+run_CI() {
+    local app_alias=${1:?"Fail. App alias is mandatory."}
+    local clj_opts_full_multiproject="TODO"
+    local clj_opts_for_alias="-T:root/build ci :app-alias :${app_alias}"
+
+    if [ ${app_alias} = "ACROSS_FULL_MULTIPROJECT" ]
+    then echo "NOT yet implemented."
+    else echo "Running full CI job. Alias: ${app_alias}. Opts: ${clj_opts_for_alias}"
+         clj ${clj_opts_for_alias}
+    fi
+}
+
 # Always execute all commands from root of project
 (
     cd ${multiproject_root}
-    main
+    main "${@}"
 )
