@@ -64,11 +64,13 @@
 
 (defn ->grug-app-handler
   ([system-components]
-   (->grug-app-handler system-components router/router))
+   (->grug-app-handler system-components router/router wrap-grug-middleware))
   ([system-components router]
+   (->grug-app-handler system-components router wrap-grug-middleware))
+  ([system-components router wrap-middleware]
    (fn [request]
      (let [handler (router request)
-           app-handler (wrap-grug-middleware handler system-components)]
+           app-handler (wrap-middleware handler system-components)]
        (app-handler request)))))
 
 (defn -main

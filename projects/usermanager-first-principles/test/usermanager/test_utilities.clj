@@ -20,16 +20,24 @@
     (.getLocalPort socket)))
 
 (defn grug-test-settings
-  []
-  (let [settings (grug-settings/make-settings
-                  (grug-settings/read-settings! "usermanager/settings.edn")
-                  {})]
-    (merge-with merge
-                settings
-                {:com.adityaathalye.grugstack.system.core/settings
-                 {:runtime-environment-type "test"}
-                 :com.adityaathalye.grugstack.system.server-simple/jetty-adapter
-                 {:port (get-free-port!)}})))
+  ([]
+   (grug-test-settings {}))
+  ([ns-settings-overrides]
+   (let [settings (grug-settings/make-settings
+                   (grug-settings/read-settings! "usermanager/settings.edn")
+                   {})
+         common-test-settings {:com.adityaathalye.grugstack.system.core/settings
+                               {:runtime-environment-type "test"}
+                               :com.adityaathalye.grugstack.system.server-simple/jetty-adapter
+                               {:port (get-free-port!)}}]
+     (merge-with merge
+                 settings
+                 common-test-settings
+                 ns-settings-overrides))))
+
+#_(grug-test-settings
+   {:com.adityaathalye.grugstack.system.server-simple/server
+    {:handler-thunk `identity}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Test fixture utils
@@ -81,14 +89,20 @@
          (finally (println "Deleted SQLite test DB:" dbname)))))
 
 (defn setup-teardown-grug!
-  [f]
-  (let [settings (grug-test-settings)
-        system (grug-system/init settings)]
-    (println "Setting up grug system:")
-    (println "With settings:" settings)
-    (f)
-    (ig/halt! system)
-    (println "Stopped grug system.")))
+  ([f]
+   (setup-teardown-grug! {} nil f))
+  ([test-ns-system-atom f]
+   (setup-teardown-grug! {} test-ns-system-atom f))
+  ([test-ns-settings-overrides test-ns-system-atom f]
+   (let [settings (grug-test-settings test-ns-settings-overrides)
+         system (grug-system/init settings)]
+     (when test-ns-system-atom
+       (reset! test-ns-system-atom system))
+     (println "Setting up grug system:")
+     (println "With settings:" settings)
+     (f)
+     (ig/halt! system)
+     (println "Stopped grug system."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HTTP utils
