@@ -70,6 +70,9 @@
                                                      grugstack/grugstack {:local/root "grugstack"}
                                                      acmecorp/snafuapp {:local/root "projects/acmecorp/snafuapp"}}
                                         :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}
+
+           ;; SLURPED IN "usermanager-first-principles" from:
+           ;; https://github.com/adityaathalye/usermanager-first-principles
            :usermanager.main/extra-paths ["projects/usermanager-first-principles/dev"
                                           "projects/usermanager-first-principles/test"
                                           "projects/usermanager-first-principles/src"
