@@ -5,7 +5,13 @@
    [usermanager.test-utilities :as tu]
    [usermanager.system.core :as system]))
 
-(use-fixtures :once (partial tu/with-test-db ::db))
+#_(use-fixtures :once (partial tu/with-test-db ::db))
+#_(use-fixtures :once tu/setup-teardown-grug!)
+
+(use-fixtures :once
+  (fn [f]
+    (tu/with-test-db ::db f)
+    (tu/setup-teardown-grug! f)))
 
 (deftest middleware-test
   (testing "Middleware functionality"

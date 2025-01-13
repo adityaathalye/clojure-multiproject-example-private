@@ -4,8 +4,12 @@
             [clojure.string :as s]
             [usermanager.model.user-manager :as model]
             [clojure.java.io :as io]
-            [usermanager.router.core :as router])
+            [usermanager.router.core :as router]
+            [integrant.core :as ig]
+            [com.adityaathalye.grugstack.settings.core :as grug-settings]
+            [com.adityaathalye.grugstack.system.core :as grug-system]            )
   (:import (java.net ServerSocket)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Configuration utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -14,6 +18,18 @@
   []
   (with-open [socket (ServerSocket. 0)]
     (.getLocalPort socket)))
+
+(defn grug-test-settings
+  []
+  (let [settings (grug-settings/make-settings
+                  (grug-settings/read-settings! "usermanager/settings.edn")
+                  {})]
+    (merge-with merge
+                settings
+                {:com.adityaathalye.grugstack.system.core/settings
+                 {:runtime-environment-type "test"}
+                 :com.adityaathalye.grugstack.system.server-simple/jetty-adapter
+                 {:port (get-free-port!)}})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Test fixture utils
@@ -63,6 +79,16 @@
          (catch java.io.IOException e
            (println (ex-message e)))
          (finally (println "Deleted SQLite test DB:" dbname)))))
+
+(defn setup-teardown-grug!
+  [f]
+  (let [settings (grug-test-settings)
+        system (grug-system/init settings)]
+    (println "Setting up grug system:")
+    (println "With settings:" settings)
+    (f)
+    (ig/halt! system)
+    (println "Stopped grug system.")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HTTP utils
