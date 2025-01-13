@@ -90,7 +90,7 @@
 
 (defn setup-teardown-grug!
   ([f]
-   (setup-teardown-grug! {} nil f))
+   (setup-teardown-grug! {} (atom nil) f))
   ([test-ns-system-atom f]
    (setup-teardown-grug! {} test-ns-system-atom f))
   ([test-ns-settings-overrides test-ns-system-atom f]
@@ -99,8 +99,7 @@
          dbname (get-in system
                         [:com.adityaathalye.grugstack.system.db.primary.sqlite/db
                          :dbname])]
-     (when test-ns-system-atom
-       (reset! test-ns-system-atom system))
+     (reset! test-ns-system-atom system)
      (println "Setting up grug system:")
      (println "With settings:" settings)
      (f)
