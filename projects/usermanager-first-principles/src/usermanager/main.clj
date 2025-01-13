@@ -73,7 +73,7 @@
            app-handler (wrap-middleware handler system-components)]
        (app-handler request)))))
 
-(defn -main
+(defn -main-legacy
   [& [port]]
   (let [server-config (system/get-config ::system/server)
         port (or port
@@ -92,7 +92,7 @@
                         (assoc server-config :port port))
     (system/start-server! (wrap-router router/router))))
 
-(defn -main-grug
+(defn -main
   [& args]
   (let [settings-file (or (first args)
                           "usermanager/settings.edn")
@@ -112,7 +112,7 @@
     (grug-settings/read-settings! "usermanager/settings.edn")
     {}))
 
-  (-main-grug)
+  (-main)
 
   (.stop (-> dev-system
              :com.adityaathalye.grugstack.system.server-simple/server
