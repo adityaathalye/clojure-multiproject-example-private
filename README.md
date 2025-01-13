@@ -1,6 +1,24 @@
 # Clojure Multi-Project Example Layout and Tool Use
 
-Warning: This whole thing is very alpha-quality in my head.
+Try from project root (requires Bash 4.0+, assumes Bash 5.0+):
+
+```shell
+bin/run_cmd.sh # and follow the menu to pick COMMAND and ALIAS
+
+# OR
+bin/run_cmd.sh run_TESTS # and follow the menu to pick ALIAS
+
+# OR, directly make it do what you mean...
+
+bin/run_cmd.sh run_TESTS "com.acmecorp.snafuapp.core"
+
+bin/run_cmd.sh run_UBERJAR "com.acmecorp.snafuapp.core"
+```
+
+The `bin/run_cmd.sh` helper just builds and runs commands documented
+in [Usage](#usage) below.
+
+**Warning: This whole thing is very alpha-quality in my head.**
 - It is made available with a quality guarantee of: "It works on my
   machine, and I *think* I can make it work for my purposes.".
 - Mainly because I'd like to nerd snipe someone out there... I've
