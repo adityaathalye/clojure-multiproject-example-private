@@ -14,11 +14,12 @@
            :root/extra-paths [:grugstack/extra-paths
                               :com.example.core/extra-paths
                               :com.acmecorp.snafuapp.core/extra-paths
-                              :usermanager-example.app/extra-paths]
+                              :usermanager.main/extra-paths]
            :root/all {:extra-paths ["src" "resources"
                                     :root/extra-paths]
                       :extra-deps {grugstack/grugstack
-                                   {:local/root "grugstack"}}}
+                                   {:local/root "grugstack"}
+                                   clj-http/clj-http {:mvn/version "3.12.3"}}}
            :root/dev {:extra-paths ["dev"]
                       :extra-deps {metosin/reitit-dev {:mvn/version "0.7.2"}
                                    integrant/repl {:mvn/version "0.3.3"}
@@ -68,4 +69,16 @@
                                         :extra-deps {;; explicitly uses grugstack
                                                      grugstack/grugstack {:local/root "grugstack"}
                                                      acmecorp/snafuapp {:local/root "projects/acmecorp/snafuapp"}}
-                                        :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}}}
+                                        :exec-args {:dirs ["projects/acmecorp/snafuapp"]}}
+           :usermanager.main/extra-paths ["projects/usermanager-first-principles/dev"
+                                          "projects/usermanager-first-principles/test"
+                                          "projects/usermanager-first-principles/src"
+                                          "projects/usermanager-first-principles/resources"]
+           :usermanager.main {:ns-default usermanager.main
+                              :main-opts ["-m" "usermanager.main"]
+                              :extra-deps
+                              {grugstack/grugstack
+                               {:local/root "grugstack"}
+                               projects/example_app
+                               {:local/root "projects/usermanager-first-principles"}}
+                              :exec-args {:dirs ["projects/usermanager-first-principles"]}}}}

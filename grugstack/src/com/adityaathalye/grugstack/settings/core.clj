@@ -1,7 +1,7 @@
 (ns com.adityaathalye.grugstack.settings.core
   (:require
    [clojure.java.io :as io]
-   [clojure.edn :as edn])
+   [integrant.core :as ig])
   (:gen-class))
 
 (def default-settings-edn-file
@@ -13,7 +13,7 @@
   (-> settings-file
       io/resource
       slurp
-      edn/read-string))
+      ig/read-string))
 
 (let [default-settings (read-settings! default-settings-edn-file)]
   (defn make-settings

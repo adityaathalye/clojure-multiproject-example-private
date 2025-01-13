@@ -10,12 +10,10 @@
    [com.adityaathalye.grugstack.settings.core :as settings])
   (:gen-class))
 
-(def system-map
-  {::system {:db-primary (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db
-                                  :com.adityaathalye.grugstack.system.sqlite/primary])
-             :db-sessions (ig/ref [:com.adityaathalye.grugstack.system.sqlite/db
-                                   :com.adityaathalye.grugstack.system.sqlite/sessions])
-             :environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)}})
+(def default-system-components
+  {::components {:db-primary (ig/ref :com.adityaathalye.grugstack.system.db.primary.sqlite/db)
+                 :db-sessions (ig/ref :com.adityaathalye.grugstack.system.db.sessions.sqlite/db)
+                 :environment (ig/ref :com.adityaathalye.grugstack.system.runtime/environment)}})
 
 #_(def build-config-map nil)
 (defmulti build-config-map
@@ -33,6 +31,8 @@
    config. This is intentional. Settings can contain secrets that we
    don't want to have to remember to elide from the final configuration."
   [{{:keys [system-modules]} ::settings
+    components ::components
+    :or {components default-system-components}
     :as settings}]
   (apply require (map symbol system-modules))
   (let [cfg (reduce (fn [system-configuration module-name]
@@ -43,10 +43,10 @@
                     system-modules)]
     (-> cfg
         (dissoc ::settings)
-        (merge system-map)
+        (assoc ::components components)
         ig/expand)))
 
-(defmethod ig/init-key ::system
+(defmethod ig/init-key ::components
   [_ system-map]
   system-map)
 
@@ -56,10 +56,15 @@
     (ig/load-namespaces cfg)
     (-> cfg ig/init)))
 
-
 (comment
 
-  (init (settings/make-settings (settings/read-settings!
-                                 "com/example/settings.edn")))
+  (def test-system
+    (do (when test-system (ig/halt! test-system))
+        (init (settings/make-settings (settings/read-settings!
+                                       "com/example/settings.edn")))))
+
+  (expand
+   (settings/make-settings (settings/read-settings!
+                            "com/example/settings.edn")))
 
   )

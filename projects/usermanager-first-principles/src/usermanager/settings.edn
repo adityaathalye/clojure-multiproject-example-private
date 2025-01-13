@@ -1,0 +1,18 @@
+{:com.adityaathalye.grugstack.system.core/settings
+ {:app-name "usermanager"
+  :runtime-environment-type "dev"
+  :system-modules [:com.adityaathalye.grugstack.system.db.sqlite
+                   :com.adityaathalye.grugstack.system.db.primary.sqlite
+                   :com.adityaathalye.grugstack.system.runtime
+                   :com.adityaathalye.grugstack.system.server-simple
+                   ]}
+
+ :com.adityaathalye.grugstack.system.db.primary.sqlite/db
+ {:migrator usermanager.model.user-manager/populate-grug}
+
+ :com.adityaathalye.grugstack.system.core/components
+ {:application/component
+  {:database #ig/ref :com.adityaathalye.grugstack.system.db.primary.sqlite/db}}
+
+ :com.adityaathalye.grugstack.system.server-simple/server
+ {:handler-thunk usermanager.main/->grug-app-handler}}
