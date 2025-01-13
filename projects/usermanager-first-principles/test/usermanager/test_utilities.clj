@@ -95,13 +95,21 @@
    (setup-teardown-grug! {} test-ns-system-atom f))
   ([test-ns-settings-overrides test-ns-system-atom f]
    (let [settings (grug-test-settings test-ns-settings-overrides)
-         system (grug-system/init settings)]
+         system (grug-system/init settings)
+         dbname (get-in system
+                        [:com.adityaathalye.grugstack.system.db.primary.sqlite/db
+                         :dbname])]
      (when test-ns-system-atom
        (reset! test-ns-system-atom system))
      (println "Setting up grug system:")
      (println "With settings:" settings)
      (f)
      (ig/halt! system)
+     (reset! test-ns-system-atom nil)
+     (try (io/delete-file dbname)
+          (catch java.io.IOException e
+            (println (ex-message e)))
+          (finally (println "Deleted SQLite test DB:" dbname)))
      (println "Stopped grug system."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
