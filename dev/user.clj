@@ -1,26 +1,42 @@
 (ns user
   (:require [integrant.repl :as ig-repl]
             [integrant.repl.state :as ig-state]
+            [clojure.tools.deps :as deps]
             [clojure.tools.namespace.repl :as repl]
             [clojure.repl.deps :as repl-deps :refer [add-lib sync-deps]]
             [portal.api :as p]
-            [clojure.reflect :as reflect]
             [com.adityaathalye.grugstack.settings.core :as settings]
             [com.adityaathalye.grugstack.system.core :as system]))
 
-(ig-repl/set-prep!
- #(system/expand (settings/make-settings
-                  (settings/read-settings! "com/acmecorp/snafuapp/settings.edn"))))
+(defn set-prep!
+  [settings-file-grug-style]
+  (ig-repl/set-prep!
+   #(system/expand (settings/make-settings
+                    (settings/read-settings! settings-file-grug-style)))))
+
+(defn go [] (ig-repl/go))
+(defn halt [] (ig-repl/halt))
+(defn reset [] (ig-repl/reset))
+(defn reset-all [] (ig-repl/reset-all))
 
 ;; ref: https://ryanmartin.me/articles/clojure-fly/
-(repl/set-refresh-dirs "src" "resources" "grugstack")
-
-(def go ig-repl/go)
-(def halt ig-repl/halt)
-(def reset ig-repl/reset)
-(def reset-all ig-repl/reset-all)
+(repl/set-refresh-dirs "src" "resources" "grugstack" "projects")
 
 (comment
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; SET UP SYSTEM HELPERS
+;;;
+;;; Call set-prep manually, depending on project REPL
+;;; connected to, before using the "SYSTEM helpers"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (set-prep! "FIXME/settings.edn")
+
+  (set-prep! "com/example/settings.edn")
+
+  (set-prep! "com/acmecorp/snafuapp/settings.edn")
+
+  (set-prep! "usermanager/settings.edn")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; SYSTEM helpers
@@ -57,8 +73,13 @@
 ;;; DEPS helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  ;; Explore the deps tree
+  (:project-edn (deps/find-edn-maps "./deps.edn"))
+
   ;; Try a lib
   (add-lib 'sym {:mvn/version "x.y.z"})
 
   ;; Update libs from deps.edn
-  (sync-deps)) ;; END OF COMMENT BLOCK
+  (sync-deps)
+
+  0) ;; END OF COMMENT BLOCK
