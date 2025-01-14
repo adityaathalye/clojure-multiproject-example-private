@@ -1,6 +1,34 @@
 # Clojure Multi-Project Example Layout and Tool Use
 
-Try from project root (requires Bash 4.0+, assumes Bash 5.0+):
+**NOTICE: Bespoke Software For My Use**.
+
+However, I hope others find some value in the idea(s) / trick(s)
+contained herein. Plus, *"Learn Generously"* is [my
+credo](https://www.evalapply.org/), and I hope publishing this
+welcomes brain-exchange with kindred spirits.
+
+So... MIT-licensed for great good.
+
+Please mess about and [contribute](#contributing) feedback / critique!
+No idea is sacrosanct.
+
+- **Try-out-ers**: Follow [Quick Start](#quick-start) to, well, quick
+  start.
+- **Rationale-seekers**: [Concept](#concept) and [sundry design notes](sundry-design-notes)
+  hopefully explain where I'm trying to go with this.
+- **Code spelunkers**: First visit the top-level `deps.edn` file,
+  `build/build.clj` file, and then root about "grugstack", especially
+  the main files for grug's concept of "system" and "settings".
+
+# Quick Start
+
+Try from project root:
+
+- [Requirements](#requirements) must first be satisfied, of course.
+- The `bin/run_cmd.sh` helper builds and runs commands documented in
+  [Usage](#usage).
+- *Following multiproject's `:app-alias` naming convention is key
+  (haha) to success* (see [MultiProject Conventions](#multiproject-conventions)).
 
 ```shell
 bin/run_cmd.sh # and follow the menu to pick COMMAND and ALIAS
@@ -15,86 +43,111 @@ bin/run_cmd.sh run_TESTS "com.acmecorp.snafuapp.core"
 bin/run_cmd.sh run_UBERJAR "com.acmecorp.snafuapp.core"
 ```
 
-The `bin/run_cmd.sh` helper just builds and runs commands documented
-in [Usage](#usage) below.
+# Concept
 
-**Warning: This whole thing is very alpha-quality in my head.**
-- It is made available with a quality guarantee of: "It works on my
-  machine, and I *think* I can make it work for my purposes.".
-- Mainly because I'd like to nerd snipe someone out there... I've
-  ruminated more than enough, in isolation.
-- So, please use the project issues to (constructively) rip apart the
-  design! No idea is sacred. (Wait, but, what if I have no idea...).
+As of today, **"multiproject" addresses my own specific
+requirements;** viz.
 
-# Design notes
+- Indie and Hobby SaaS apps of my own;
 
-Here's my thinking.
+- [RAD](https://en.wikipedia.org/wiki/Rapid_application_development "Rapid Application Development")
+  for outcomes-driven customers who want long-lived, stable
+  software. I'm my own customer! And **I'm available for hire!**
 
-The attempt is to...
-- Share a common abstract "system" (which I'm calling `grugstack`),
-- across multiple apps, within a single repo (this multi-project example),
-- managed with only out-of-the-box tooling (not out-of-the-box thinking).
-- Whether the apps are standalone (like `projects/example_app`), or must
-  be neatly isolated for my customers (e.g. `projects/acmecorp/snafuapp`).
-  - BTW, *do you want to build a niche Micro-SaaS?* For outside
-    customers? Inside customers? As your own private force-multiplier?
-    *[Hire me!](mailto:adiDELET3ALLCAP1TAL5ANDNUMBER5%40evalapply.org?subject=Build%20us%20a%20Micro%20SaaS%20using%20boringly%20stable%20technology.)*
+- Benefit from the Clojure ecosystem's creativity, reach, stewardship,
+  *and* software stability.
 
-Conceptually, it is aspirational...
-- I was obsessing about web stacks, but now I suspect this bag of
-  tricks will generalise to apps made for any arbitrary Clojure /
-  ClojureScript runtime; whether web app, desktop, mobile, cli, data
-  science etc... And the code for all these diverse apps can be
-  managed within a single source repo.
-- The *Way* is not Purely Functional /or/ Purely Object Oriented, but
-  a "Best of Both" approach, all the way down to code layout.
-  - A system of parts (functions) that glue together *à la carte*,
-  - via carefully constructed (namespaced, structured) plain Clojure
-    data,
-  - into any number of runnable apps (open-ended polymorphism) (see
-    [credits](#credits)).
+**Professionally**, I want to be able to:
 
-Ideally, I want to get away with...
-- **the simplest possible project tree layout**, even if it makes code
-  and command-line invocations repetitive or verbose. My grug brain
-  can easily plod along long paths, as long as they are made painfully
-  obvious.
-- **the fewest possible bespoke abstractions or terms of art**,
-  because making a Domain Specific Language is easy, but keeping it
-  sensible is hard.
-- **no custom build tooling.** I just want to appropriate the raw
-  machinery and public contracts provided by deps.edn, tools.build,
-  and Clojure CLI. I've chosen to used in the usual way, via a single
-  multi-project-level `build.clj`. Stare at the `build.clj` file and
-  the multi-project-level `deps.edn` file side-by-side to see the
-  main trick I've used... I figured out a permutation of (alias names
-  x grouping of paths x grouping of dependencies x grouping of args
-  that must get overridden to narrow context to the last alias).
+- create, manage, and maintain multiple apps/projects,
+- under /a single source tree/ (no diamond dependencies, please),
+- crafted with a well curated application stack
+- that each application/project can use a la carte
+- *and* which I can pry apart cleanly, if needed (e.g. hand over source to a
+  customer or buyer (that will be the day!)).
 
-By design, I want to run tools / start REPLs etc. ***only at the root
-of the multi-project***, and use explicit command-line options to
-broaden or narrow scope of the command / REPL to the part(s) of the
-multi-project that I want to target. This helps me keep a simple
-mental model of managing the whole or the part of the multi-project,
-that can show up legibly in my shell's history / project logs /
-docs etc. (hopefully the [Usage](#usage) examples will make this clear).
+**Architecturally**, I want to retain optionality.
+
+Choosing to focus on *outcomes* means I should retain the option to
+use *any* framework or architecture or Clojure dialect, for any type
+of application (web, backend, developer tool etc.).
+
+As of this writing, I feel like this is already plausible. I don't see
+why any one app managed by "multiproject" cannot itself be a
+biff/kit/duct app, or itself follow polylith architecture, or be just
+a single babashka script.
+
+**Systematically**, I want /system and workflow/ re-use.
+
+In addition to stack reuse.
+
+Just enough structure to help me manage things, while staying sane,
+without building hard dependence on any specific project layout, build
+tool, application stack etc.
+
+More stream-of-conscious-y stuff squirreled away under
+[sundry design notes](#sundry-design-notes).
 
 # Requirements
 
-Required:
+## Mandatory
 
 A [working Clojure
 installation](https://clojure.org/guides/install_clojure "Clojure
 install instructions") (prefer the latest available Clojure).
 
-A `deps.edn` at the root of the source, that is used to orchestrate
-projects / apps. Each project/app must have a minimal `deps.edn` under
-its project root.
+## Optional
 
-Optional:
+Bash to use the `bin/run_cmd.sh`. I've assumed Bash 5.0+. Bash 4.0+
+should be okay too.
 
-Help LSP recognise individual apps/projects by placing a `.gitignore`
-under the project root. This helps in completions, refactoring, etc.
+## DIY
+
+Non-Linux users may have to fiddle about to make things work right for
+them. I use Ubuntu 24.04 LTS on my dev and server boxen. So I haven't
+paid attention to any other OS.
+
+# MultiProject Conventions
+
+## Mandatory
+
+**The root `deps.edn` is the lynchpin of control.**
+
+- It defines conventions and data relied upon by everything under the
+  multiproject; repl, build, test, ci, local-m2 etc.
+- Each project/app must have a minimal `deps.edn` under its project
+  root. The app-specific deps file must specify its own library
+  dependencies.
+- Multiproject commands will ignore any project-specific alias or
+  extra path. These may be defined at-will, only for developer
+  convenience.
+
+**Top-level alias naming convention does *a lot* of heavy lifting for us.**
+
+  - All project-global information must be described under `:root/`
+    aliases, only in the root `deps.edn` file. This helps avoids
+    overlap / conflict with system-specific and user-specific
+    deps.edn.
+  - Each project / application must get its own alias (a keyword),
+    only in the root `deps.edn`. The alias data is used by commands
+    defined for use within the multiproject.
+  - Project alias names *must* map to one and only one project.
+  - Project alias name must match the project' main entry point namespace.
+    - Build commands rely on the keyword alias when provided
+      via. `:app-alias` command line option.
+    - The uberjar build procedure relies on our namespacing convention
+      to ensure clean separation of build-time classpaths, intermediate
+      artifacts, and so forth.
+    - Socket REPL management is easier if we name the socket file
+      according to the alias.
+
+## Optional
+
+- A multiproject-local `.m2` repository may be useful for dependency
+  management / audit reasons, but isn't a hard requirement.
+- We many need to help LSP recognise individual apps/projects by
+  placing a `.gitignore` under the project root (for completions,
+  refactoring, etc.).
 
 # Usage
 
@@ -288,9 +341,11 @@ projects/acmecorp/fubarapp/
                 └── core_test.clj
 ```
 
-## SUNDRY PROJECT MAINTENANCE
-### cljfmt to format code
-Thank you, yet again, weavejester.
+# Sundry Project Maintenance
+## Code formatting
+
+As of this writing, `cljfmt` drives code formatting convention. Thank
+you, yet again, [weavejester](https://github.com/weavejester).
 
 - Install as clj tool aliased as cljfmt:
 ```shell
@@ -298,8 +353,61 @@ clj -Ttools install io.github.weavejester/cljfmt '{:git/tag "0.13.0"}' :as cljfm
 ```
 - Configure options in `cljfmt.edn` (`:path` being the most important
   for our multi-project).
-- Check: `clj -Tcljfmt check`
-- Fix: `clj -Tcljfmt fix`
+- Check whole-repo formatting: `clj -Tcljfmt check`
+- Fix whole-repo code format: `clj -Tcljfmt fix`
+# Sundry Design Notes
+
+Here's my stream of consciousness...
+
+The attempt is to...
+- Share a common abstract "system" (which I'm calling `grugstack`),
+- across multiple apps, within a single repo (this multi-project example),
+- managed with only out-of-the-box tooling (not out-of-the-box thinking).
+- Whether the apps are standalone (like `projects/example_app`), or must
+  be neatly isolated for my customers (e.g. `projects/acmecorp/snafuapp`).
+  - BTW, *do you want to build a niche Micro-SaaS?* For outside
+    customers? Inside customers? As your own private force-multiplier?
+    *[Hire me!](mailto:adiDELET3ALLCAP1TAL5ANDNUMBER5%40evalapply.org?subject=Build%20us%20a%20Micro%20SaaS%20using%20boringly%20stable%20technology.)*
+
+Conceptually, it is aspirational...
+- I was obsessing about web stacks, but now I suspect this bag of
+  tricks will generalise to apps made for any arbitrary Clojure /
+  ClojureScript runtime; whether web app, desktop, mobile, cli, data
+  science etc... And the code for all these diverse apps can be
+  managed within a single source repo.
+- The *Way* is not Purely Functional /or/ Purely Object Oriented, but
+  a "Best of Both" approach, all the way down to code layout.
+  - A system of parts (functions) that glue together *à la carte*,
+  - via carefully constructed (namespaced, structured) plain Clojure
+    data,
+  - into any number of runnable apps (open-ended polymorphism) (see
+    [credits](#credits)).
+
+Ideally, I want to get away with...
+- **the simplest possible project tree layout**, even if it makes code
+  and command-line invocations repetitive or verbose. My grug brain
+  can easily plod along long paths, as long as they are made painfully
+  obvious.
+- **the fewest possible bespoke abstractions or terms of art**,
+  because making a Domain Specific Language is easy, but keeping it
+  sensible is hard.
+- **no custom build tooling.** I just want to appropriate the raw
+  machinery and public contracts provided by deps.edn, tools.build,
+  and Clojure CLI. I've chosen to used in the usual way, via a single
+  multi-project-level `build.clj`. Stare at the `build.clj` file and
+  the multi-project-level `deps.edn` file side-by-side to see the
+  main trick I've used... I figured out a permutation of (alias names
+  x grouping of paths x grouping of dependencies x grouping of args
+  that must get overridden to narrow context to the last alias).
+
+By design, I want to run tools / start REPLs etc. ***only at the root
+of the multi-project***, and use explicit command-line options to
+broaden or narrow scope of the command / REPL to the part(s) of the
+multi-project that I want to target. This helps me keep a simple
+mental model of managing the whole or the part of the multi-project,
+that can show up legibly in my shell's history / project logs /
+docs etc. (hopefully the [Usage](#usage) examples will make this clear).
+
 # TODO
 
 Lots.
