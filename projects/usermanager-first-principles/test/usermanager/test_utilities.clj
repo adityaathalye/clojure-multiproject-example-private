@@ -7,7 +7,7 @@
             [usermanager.router.core :as router]
             [integrant.core :as ig]
             [com.adityaathalye.grugstack.settings.core :as grug-settings]
-            [com.adityaathalye.grugstack.system.core :as grug-system]            )
+            [com.adityaathalye.grugstack.system.core :as grug-system])
   (:import (java.net ServerSocket)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

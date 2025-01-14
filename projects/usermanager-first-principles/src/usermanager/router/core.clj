@@ -20,7 +20,6 @@
 ;; (route/resources "/")
 ;; (route/not-found "Not Found")
 
-
 #_(def router nil) ; evaluate to reset defmulti after modifying dispatch function
 (defmulti router
   (fn [{:keys [request-method uri] :as _request}]
@@ -85,5 +84,4 @@
              :uri "/user/delete/42"
              :application/component {:database (usermanager.system.core/get-db)}}))
 
-  (handle {:request-method :post :uri "/"})
-  )
+  (handle {:request-method :post :uri "/"}))

@@ -142,6 +142,4 @@
 
   (require 'clojure.reflect)
   (clojure.reflect/reflect (get-db))
-  (stop-db!)
-
-  )
+  (stop-db!))

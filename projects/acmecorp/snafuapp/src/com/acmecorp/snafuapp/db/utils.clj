@@ -9,8 +9,7 @@
   (writer [pool])
   (readwrite [pool]))
 
-(defmulti connection-pool
-  )
+(defmulti connection-pool)
 
 (defn timestamp!
   "Copied from yogthos/migratus."
@@ -31,9 +30,7 @@
 
 (comment
   (init-query-file! "com/acmecorp/snafuapp/db"
-                    "foo")
-
-  )
+                    "foo"))
 
 (defn sql-slurp!
   [sql-dir sql-query-file]

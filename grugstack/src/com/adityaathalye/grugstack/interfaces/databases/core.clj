@@ -1,15 +1,14 @@
 (ns com.adityaathalye.grugstack.interfaces.databases.core
   (:require [clojure.java.io :as io])
   (:import [java.util Date TimeZone]
-           [java.text SimpleDateFormat])  )
+           [java.text SimpleDateFormat]))
 
 (defprotocol IDatabaseConnectionPool
   (reader [pool])
   (writer [pool])
   (readwrite [pool]))
 
-(defmulti connection-pool
-  )
+(defmulti connection-pool)
 
 (defn timestamp!
   "Copied from yogthos/migratus."
@@ -30,9 +29,7 @@
 
 (comment
   (init-query-file! "src/com/example/db"
-                    "foo")
-
-  )
+                    "foo"))
 
 (defn sql-slurp!
   [sql-dir sql-query-file]

@@ -130,5 +130,4 @@
 
   system/global-system
   (require 'clojure.reflect)
-  (clojure.reflect/reflect (::system/server @system/global-system))
-  )
+  (clojure.reflect/reflect (::system/server @system/global-system)))

@@ -46,5 +46,4 @@
 
   (tap> (.getConnection (get-in ig-state/system [:database/primary :reader])))
 
-  (add-lib 'sym {:mvn/version "x.y.z"})
-  )
+  (add-lib 'sym {:mvn/version "x.y.z"}))

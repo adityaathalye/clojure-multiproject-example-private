@@ -35,6 +35,4 @@
   (make-settings)
 
   ;; suitable override should succeed
-  (make-settings {:app-name "custom-app-name"})
-
-  )
+  (make-settings {:app-name "custom-app-name"}))

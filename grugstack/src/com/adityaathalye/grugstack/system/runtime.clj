@@ -1,8 +1,8 @@
 (ns com.adityaathalye.grugstack.system.runtime
   (:require
-    [integrant.core :as ig]
-    [clojure.tools.logging :as log]
-    [com.adityaathalye.grugstack.system.core :as system])
+   [integrant.core :as ig]
+   [clojure.tools.logging :as log]
+   [com.adityaathalye.grugstack.system.core :as system])
   (:gen-class))
 
 (defmethod system/build-config-map :com.adityaathalye.grugstack.system.runtime

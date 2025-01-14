@@ -65,6 +65,4 @@
 
   (expand
    (settings/make-settings (settings/read-settings!
-                            "com/example/settings.edn")))
-
-  )
+                            "com/example/settings.edn"))))

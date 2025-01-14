@@ -288,6 +288,18 @@ projects/acmecorp/fubarapp/
                 └── core_test.clj
 ```
 
+## SUNDRY PROJECT MAINTENANCE
+### cljfmt to format code
+Thank you, yet again, weavejester.
+
+- Install as clj tool aliased as cljfmt:
+```shell
+clj -Ttools install io.github.weavejester/cljfmt '{:git/tag "0.13.0"}' :as cljfmt
+```
+- Configure options in `cljfmt.edn` (`:path` being the most important
+  for our multi-project).
+- Check: `clj -Tcljfmt check`
+- Fix: `clj -Tcljfmt fix`
 # TODO
 
 Lots.

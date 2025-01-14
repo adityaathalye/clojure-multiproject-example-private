@@ -10,7 +10,7 @@
   ["" {:handler html-fragment} ; return hypermedia fragment by default
    ["/" {:get {:handler ^:replace html5-page
                :snafuapp/view {:template :default
-                             :page-name "Home Page"}}}]
+                               :page-name "Home Page"}}}]
    ["/echo" {:get {:snafuapp/view {:template :echo}}}]
    ["/foo" {:get {:snafuapp/view {:template :foo}}}]])
 

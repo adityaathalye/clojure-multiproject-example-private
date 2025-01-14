@@ -30,5 +30,4 @@
       [:p "An ACME Corp. SNAFU"]]]]))
 
 (comment
-  (hp/html5 (page-template {}))
-  )
+  (hp/html5 (page-template {})))

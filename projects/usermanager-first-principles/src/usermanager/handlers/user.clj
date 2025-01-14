@@ -41,8 +41,7 @@ Ref: https://github.com/seancorfield/usermanager-example/blob/develop/src/userma
         (resp/content-type "text/html"))))
 
 (comment
-  (render-page {:request-method :get :uri "/"})
-  )
+  (render-page {:request-method :get :uri "/"}))
 
 (defn reset-changes
   [req]

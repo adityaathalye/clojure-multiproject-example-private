@@ -36,11 +36,10 @@
 
 (comment
   (mapv #(get-in (create-app-basis {:app-alias :com.acmecorp.snafuapp.snafuapp})
-            %)
+                 %)
         [[:argmap]
          [:libs 'acmecorp/snafuapp :paths]
-         [:libs 'grugstack/grugstack :paths]])
-  )
+         [:libs 'grugstack/grugstack :paths]]))
 
 (defn make-opts
   [{:keys [app-alias ns-compile]
@@ -95,7 +94,7 @@
     (println (str "\nCompiling " main "..."))
     (b/compile-clj opts)
     (let [uber-opts (select-keys opts
-                                 [:class-dir :uber-file :basis :main]) ]
+                                 [:class-dir :uber-file :basis :main])]
       (println "\nBuilding JAR... with uber-opts:" (dissoc uber-opts :basis))
       (b/uber uber-opts))
     opts))
@@ -115,7 +114,6 @@
 
 (comment
 
-
   (map (comp sort keys b/create-basis) [{:aliases [:foo]}
                                         {:aliases [:grugstack/grugstack]}
                                         {:aliases [:grugstack/grugstack
@@ -131,5 +129,4 @@
   (tap> (b/create-basis {:aliases [:grugstack/grugstack
                                    :all/dev
                                    :all/test
-                                   :all/run-x]}))
-  )
+                                   :all/run-x]})))

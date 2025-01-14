@@ -168,5 +168,4 @@
                    {:department/id 2 :department/name "bar"}
                    {:department/id 3 :department/name "baz"}])
 
-  (hp/html5 (page-layout {:footer (page-footer 42)}))
-  )
+  (hp/html5 (page-layout {:footer (page-footer 42)})))

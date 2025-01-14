@@ -20,7 +20,6 @@
 (def reset ig-repl/reset)
 (def reset-all ig-repl/reset-all)
 
-
 (comment
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -62,6 +61,4 @@
   (add-lib 'sym {:mvn/version "x.y.z"})
 
   ;; Update libs from deps.edn
-  (sync-deps)
-
-  ) ;; END OF COMMENT BLOCK
+  (sync-deps)) ;; END OF COMMENT BLOCK

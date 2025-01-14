@@ -165,7 +165,6 @@
           :department/name "Accounting"}]},
        :application/view "list"})))
 
-
 (deftest successive-list-delete-list-route-calls-test
   (let [db (system/get-db ::db)]
     (testing "Whether successive list -> delete -> list behaves as expected."

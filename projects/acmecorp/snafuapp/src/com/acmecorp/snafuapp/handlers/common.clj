@@ -56,5 +56,4 @@ relationship."
       (res/content-type "text/html")))
 
 (comment
-  (html5-page {:request-method :get :uri "/"})
-  )
+  (html5-page {:request-method :get :uri "/"}))

@@ -1,8 +1,8 @@
 (ns usermanager.http.middleware
   (:require
-    [usermanager.http.utils :as resp]
-    [usermanager.handlers.user :as handlers]
-    [usermanager.system.core :as system]))
+   [usermanager.http.utils :as resp]
+   [usermanager.handlers.user :as handlers]
+   [usermanager.system.core :as system]))
 
 (defn wrap-message-param-in-response-header
   [handler]
@@ -67,8 +67,7 @@
 
 (comment
   (let [pattern (re-pattern (str "/user/delete" "/(\\d+)"))]
-    (re-find pattern "/user/delete/1" ))
-  )
+    (re-find pattern "/user/delete/1")))
 
 (comment
   ((wrap-route-id-params
@@ -82,7 +81,7 @@
   ((wrap-message-param-in-response-header
     (fn [request]
       (assoc request :params {:message "foo"})))
-    {:request-method :get :uri "/"})
+   {:request-method :get :uri "/"})
 
   ((wrap-echo
     (wrap-message-param-in-response-header
@@ -94,6 +93,4 @@
         handler (fn [request]
                   (assoc request :params {:message "foo"}))]
     ((composed-middleware handler)
-     {:request-method :get :uri "/"}))
-
-  )
+     {:request-method :get :uri "/"})))
