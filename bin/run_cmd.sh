@@ -102,7 +102,7 @@ EOF
 run_REPL() {
     local app_alias=${1:?"Fail. App alias is mandatory."}
     local clj_opts_full_multiproject="-M:root/all:root/dev:root/test:root/build:cider"
-    local clj_opts_for_alias="-M:root/all:root/dev:root/test:${app_alias}:cider"
+    local clj_opts_for_alias="-M:root/all:root/dev:root/test:root/build:${app_alias}:cider"
 
     if [ ${app_alias} = "ACROSS_FULL_MULTIPROJECT" ]
     then echo "Starting socket REPL. Alias: ${app_alias}. Opts: ${clj_opts_full_multiproject}"
