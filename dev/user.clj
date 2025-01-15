@@ -1,12 +1,41 @@
 (ns user
   (:require [integrant.repl :as ig-repl]
             [integrant.repl.state :as ig-state]
+            [clojure.main]
             [clojure.tools.deps :as deps]
             [clojure.tools.namespace.repl :as repl]
             [clojure.repl.deps :as repl-deps :refer [add-lib sync-deps]]
             [portal.api :as p]
             [com.adityaathalye.grugstack.settings.core :as settings]
             [com.adityaathalye.grugstack.system.core :as system]))
+
+(defn multiproject-repl-prompt
+  []
+  (let [project-alias (or (System/getenv "CLJ_MULTIPROJECT_ALIAS")
+                          "none specified")]
+    (printf "(project alias: %s) \n  %s=> "
+            project-alias
+            (ns-name *ns*))))
+
+(defn whereami?
+  "TODO: Hack.
+
+  I want to be aware at all times, which REPL context I am in, so I am
+  confident about evaluating (set-prep!) etc.
+
+  Ideally, I want the REPL prompt to be set to the project alias.
+
+  However, `(clojure.main/repl :prompt multiproject-repl-prompt)` starts a
+  sub-repl, which messes with my preferred method of starting a REPL
+  at a named unix domain file socket. If user.clj starts a sub-repl, then
+  it swallows the file socket, and I can no longer locate it anywhere.
+
+  I could not figure out how to set the prompt, from Cider, or nREPL, or
+  clojure.main."
+  []
+  (drop-while #(not= % "--socket")
+              (clojure.main/with-bindings
+                *command-line-args*)))
 
 (defn set-prep!
   [settings-file-grug-style]

@@ -104,6 +104,9 @@ run_REPL() {
     local clj_opts_full_multiproject="-M:root/all:root/dev:root/test:root/build:cider"
     local clj_opts_for_alias="-M:root/all:root/dev:root/test:root/build:${app_alias}:cider"
 
+    # Help our `dev/user.clj` set the REPL prompt, to tell us where we are.
+    export CLJ_MULTIPROJECT_ALIAS="${app_alias}"
+
     if [ ${app_alias} = "ACROSS_FULL_MULTIPROJECT" ]
     then echo "Starting socket REPL. Alias: ${app_alias}. Opts: ${clj_opts_full_multiproject}"
          clj ${clj_opts_full_multiproject} "--socket" "generic.multiproject.repl.socket"
