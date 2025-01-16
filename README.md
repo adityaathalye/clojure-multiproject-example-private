@@ -1,5 +1,7 @@
 # Clojure Multi-Project Example Layout and Tool Use
 
+![three REPL contexts, all started from multiproject's root](./doc/multiproject-multiple-repl-contexts.png)
+
 **NOTICE: Bespoke Software For My Use**.
 
 However, I hope others find some value in the idea(s) / trick(s)

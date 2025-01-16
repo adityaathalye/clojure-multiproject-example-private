@@ -7,6 +7,7 @@
                    :main-opts ["-m" "nrepl.cmdline"
                                "--middleware"
                                "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"
+                               "--repl-fn" "user/run-repl"
                                "--interactive"]}
 
            ;; ALL SETTINGS CONSOLIDATED AT THE ROOT OF THE MULTIPROJECT
