@@ -1,4 +1,4 @@
-(ns com.adityaathalye.grugstack.interfaces.layouts.handlers
+(ns com.adityaathalye.grugstack.utilities.layouts.handlers
   (:require [hiccup.page :as hp]
             [hiccup2.core :as hc]
             [ring.util.response :as res]))
