@@ -27,8 +27,8 @@ No idea is sacrosanct.
 Try from project root:
 
 - [Requirements](#requirements) must first be satisfied, of course.
-- The `bin/run_cmd.sh` helper builds and runs commands documented in
-  [Usage](#usage).
+- The `bin/run_cmd.sh` Bash helper script builds and runs commands
+  documented in [Usage](#usage).
 - *Following multiproject's `:app-alias` naming convention is key
   (haha) to success* (see [MultiProject Conventions](#multiproject-conventions)).
 

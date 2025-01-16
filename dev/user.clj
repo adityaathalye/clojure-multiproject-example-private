@@ -12,15 +12,15 @@
 
 (defn multiproject-repl-prompt
   [_]
-  (let [project-alias (or (System/getenv "CLJ_MULTIPROJECT_ALIAS")
-                          "none specified")]
-    (printf "(project alias: %s) \n  %s=> "
-            project-alias
+  (let [[socket repl-ailas] (drop-while #(not= % "--socket")
+                                        (clojure.main/with-bindings *command-line-args*))
+        project-ctx (when socket (str socket " " repl-ailas))]
+    (printf "\n[This REPL | %s]\n\\_%s=> "
+            project-ctx
             (ns-name *ns*))))
 
 (defn run-repl
-  "TODO: UGLY HACK. Find standard tool alternative to.
-
+  "TODO: UGLY HACK. Find standard tool alternative to this silly
   :prompt injection (hehe :)) into nrepl.cmdline's private `run-repl`.
 
   I want to be aware at all times, which REPL context I am in, so I am
@@ -36,10 +36,6 @@
   I could not figure out how to set the prompt, from Cider, or nREPL, or
   clojure.main."
   ([{:keys [server options] :as repl-ctx}]
-   ;; :prompt injection (hehe :)) into nrepl.cmdline's private
-   ;; `run-repl` Digging into nrepl/nrepl code, I found
-   ;; `nrepl.cmdline` and it looks like this hack works.
-   ;;
    ;; Since it is a pass-through wrapper over the private function, I
    ;; guess it will break only if maintainers add / modify the arity.
    (#'nrepl.cmdline/run-repl (assoc-in repl-ctx
