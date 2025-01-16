@@ -2,8 +2,8 @@
  :mvn/local-repo ".m2-local"
  :aliases {;; GLOBAL OVERRIDES
            :cider {;; clj -M:dev:cider
-                   :extra-deps {cider/cider-nrepl {:mvn/version "0.50.2"}
-                                refactor-nrepl/refactor-nrepl {:mvn/version "3.9.1"}}
+                   :extra-deps {cider/cider-nrepl {:mvn/version "0.51.1"}
+                                refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}}
                    :main-opts ["-m" "nrepl.cmdline"
                                "--middleware"
                                "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"
