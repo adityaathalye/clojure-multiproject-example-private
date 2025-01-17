@@ -18,9 +18,18 @@ No idea is sacrosanct.
   start.
 - **Rationale-seekers**: [Concept](#concept) and [sundry design notes](sundry-design-notes)
   hopefully explain where I'm trying to go with this.
-- **Code spelunkers**: First visit the top-level `deps.edn` file,
-  `build/build.clj` file, and then root about "grugstack", especially
-  the main files for grug's concept of "system" and "settings".
+- **Code readers**, these are the important reference points:
+  - The top-level `deps.edn` declares all source code relationships
+  - `build/build.clj` and `bin/run_cmd.sh` contain all commands to
+    execute against the whole or part of the multiproject
+  - **`parts` are *functions***: Mutually independent building blocks
+    that we configure and compose into applications. I've made my own
+    `grugstack`, but you can vendor in anything of your own.
+  - **`projects` are *objects***: Purpose-built applications, having
+    whatever architecture they need to have, built using whatever set
+    of libraries and/or `parts` they need.
+  - *Following multiproject's `:app-alias` naming convention is key
+    (haha) to success* (see [MultiProject Conventions](#multiproject-conventions)).
 
 # Quick Start
 
@@ -28,9 +37,8 @@ Try from project root:
 
 - [Requirements](#requirements) must first be satisfied, of course.
 - The `bin/run_cmd.sh` Bash helper script builds and runs commands
-  documented in [Usage](#usage).
-- *Following multiproject's `:app-alias` naming convention is key
-  (haha) to success* (see [MultiProject Conventions](#multiproject-conventions)).
+  documented in [Usage](#usage). (TBD: rewrite as babashka script for
+  maximum portability).
 
 ```shell
 bin/run_cmd.sh # and follow the menu to pick COMMAND and ALIAS

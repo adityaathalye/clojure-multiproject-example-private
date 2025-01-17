@@ -76,7 +76,7 @@
                  %)
         [[:argmap]
          [:libs 'acmecorp/snafuapp :paths]
-         [:libs 'grugstack/grugstack :paths]]))
+         [:libs 'parts/grugstack :paths]]))
 
 (defn make-opts
   [{:keys [app-alias ns-compile]

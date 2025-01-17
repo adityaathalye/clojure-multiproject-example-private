@@ -67,7 +67,7 @@
 (defn reset-all [] (ig-repl/reset-all))
 
 ;; ref: https://ryanmartin.me/articles/clojure-fly/
-(repl/set-refresh-dirs "src" "resources" "grugstack" "projects")
+(repl/set-refresh-dirs "src" "resources" "parts" "projects")
 
 (comment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

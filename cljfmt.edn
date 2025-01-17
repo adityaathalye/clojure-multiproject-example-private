@@ -1,2 +1,2 @@
 {:parallel? true
- :paths ["src" "test" "build" "dev" "projects" "grugstack"]}
+ :paths ["src" "test" "build" "dev" "projects" "parts"]}

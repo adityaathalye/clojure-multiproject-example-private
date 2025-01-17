@@ -15,7 +15,7 @@
                     (settings/read-settings! "com/acmecorp/snafuapp/settings.edn"))))
 
   ;; ref: https://ryanmartin.me/articles/clojure-fly/
-  (repl/set-refresh-dirs "src" "resources" "grugstack")
+  (repl/set-refresh-dirs "src" "resources" "parts")
 
   (def go ig-repl/go)
   (def halt ig-repl/halt)
