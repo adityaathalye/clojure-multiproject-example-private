@@ -15,7 +15,8 @@
            :root/extra-paths [:parts/extra-paths
                               :com.example.core/extra-paths
                               :com.acmecorp.snafuapp.core/extra-paths
-                              :usermanager.main/extra-paths]
+                              :usermanager.main/extra-paths
+                              :org.evalapply.smol-web-app/extra-paths]
            :root/all {:extra-paths ["src" "resources"
                                     :root/extra-paths]
                       :extra-deps {parts/grugstack
@@ -30,7 +31,8 @@
            :root/test {:extra-paths ["test"]
                        :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
                                     io.github.cognitect-labs/test-runner
-                                    {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+                                    {:git/tag "v0.5.1" :git/sha "dfb30dd"}
+                                    clj-http/clj-http {:mvn/version "3.12.3"}}
                        :exec-fn cognitect.test-runner.api/test
                        :exec-args {:patterns [".*-test$"]
                                    :dirs ["test" "parts" "projects"]}}
@@ -86,4 +88,16 @@
                                {:local/root "parts"}
                                projects/example_app
                                {:local/root "projects/usermanager-first-principles"}}
-                              :exec-args {:dirs ["projects/usermanager-first-principles"]}}}}
+                              :exec-args {:dirs ["projects/usermanager-first-principles"]}}
+
+           ;; FnConf DEMOs
+           :org.evalapply.smol-web-app/extra-paths ["projects/fnconf2025/smolwebapp/dev"
+                                                    "projects/fnconf2025/smolwebapp/test"
+                                                    "projects/fnconf2025/smolwebapp/src"
+                                                    "projects/fnconf2025/smolwebapp/resources"]
+           :org.evalapply.smol-web-app {:ns-default org.evalapply.smol-web-app
+                                        :main-opts ["-m" "org.evalapply.smol-web-app"]
+                                        :extra-deps
+                                        {fnconf2025/smolwebapp
+                                         {:local/root "projects/fnconf2025/smolwebapp"}}
+                                        :exec-args {:dirs ["projects/fnconf2025/smolwebapp"]}}}}

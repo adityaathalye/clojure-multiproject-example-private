@@ -12,11 +12,13 @@ declare -a multiproject_commands=( $(sed -E -ne "s/(^run_+.*)\(\)\s+\{/\1/p" "${
 declare -a multiproject_all_toplevel_aliases=(
     "cider" "grugstack" \
             "com.acmecorp.snafuapp.core" "com.example.core" "usermanager.main" \
+            "org.evalapply.smol-web-app" \
             "root/all" "root/build" "root/dev" "root/run-x" "root/test"
 )
 
 declare -a multiproject_app_aliases=(
-    "grugstack" "com.acmecorp.snafuapp.core" "com.example.core" "usermanager.main"
+    "grugstack" "com.acmecorp.snafuapp.core" "com.example.core" \
+    "usermanager.main" "org.evalapply.smol-web-app"
 )
 
 main() {
